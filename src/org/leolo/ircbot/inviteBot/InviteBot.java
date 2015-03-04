@@ -1,5 +1,7 @@
 package org.leolo.ircbot.inviteBot;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Vector;
 
 import org.jibble.pircbot.*;
@@ -7,8 +9,6 @@ import org.jibble.pircbot.*;
 public class InviteBot extends PircBot {
 	
 	public InviteBot(){
-		this.setName("BotI");
-		this.setLogin("invitebot");
 		answerList = new Vector<>();
 	}
 	
@@ -17,12 +17,21 @@ public class InviteBot extends PircBot {
         InviteBot bot = new InviteBot();
         // Enable debugging output.
         bot.setVerbose(true);
-        // Connect to the IRC server.
-        bot.connect("chat.freenode.net");
         bot.start();
     }
 	
 	public void start(){
+		Config config;
+		try {
+			config = new Config();
+			this.setName(config.nick);
+			this.setLogin(config.ident);
+			connect(config.server, config.port, config.password);
+			Thread.sleep(1500);
+		} catch (IOException | IrcException | InterruptedException e) {
+			e.printStackTrace();
+			return;
+		}
 		for(int i=0;i<listen.length;i++){
 			this.joinChannel(listen[i]);
 			this.joinChannel(join[i]);
@@ -69,5 +78,31 @@ public class InviteBot extends PircBot {
 				}
 			}
 		}
+	}
+	
+	static class Config{
+		String server;
+		int port;
+		String password;
+		String nick;
+		String ident;
+		public Config() throws FileNotFoundException, IOException{
+			this("settings.properties");
+		}
+		
+		public Config(String file) throws FileNotFoundException, IOException{
+			java.util.Properties setting = new java.util.Properties();
+			setting.load(new java.io.FileInputStream(file));
+			server = setting.getProperty("server","chat.freenode.net");
+			try{
+				port = Integer.parseInt(setting.getProperty("port"));
+			}catch(NumberFormatException nfe){
+				port = 6667;
+			}
+			password = setting.getProperty("password","");
+			nick = setting.getProperty("nick","inviteBot");
+			ident = setting.getProperty("ident","pircbot");
+		}
+		
 	}
 }
