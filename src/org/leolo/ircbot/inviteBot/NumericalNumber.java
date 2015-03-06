@@ -1,11 +1,10 @@
 package org.leolo.ircbot.inviteBot;
 
-public class NumericalNumber implements NumberPhase,RandomSelector<NumberPhase> {
+public class NumericalNumber extends NumberPhase {
 	
 	private int num;
 	
-	@Override
-	public NumberPhase next() {
+	public static NumberPhase next() {
 		NumericalNumber nn = new NumericalNumber();
 		nn.num = (int)(Math.random()*100);
 		return nn;

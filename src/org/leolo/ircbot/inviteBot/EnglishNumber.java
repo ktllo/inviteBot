@@ -1,6 +1,6 @@
 package org.leolo.ircbot.inviteBot;
 
-public final class EnglishNumber implements NumberPhase, RandomSelector<NumberPhase> {
+public final class EnglishNumber extends NumberPhase{
 	
 	private int number;
 	private String text;
@@ -36,9 +36,8 @@ public final class EnglishNumber implements NumberPhase, RandomSelector<NumberPh
 			"ninety",
 			"<Placeholder>"
 	};
-	@Override
-	public NumberPhase next() {
-		return null;
+	public static NumberPhase next() {
+		return new EnglishNumber((int)(Math.random()*100));
 	}
 
 	@Override
@@ -63,6 +62,8 @@ public final class EnglishNumber implements NumberPhase, RandomSelector<NumberPh
 			}
 		}
 	}
+
+	
 	
 	
 }
