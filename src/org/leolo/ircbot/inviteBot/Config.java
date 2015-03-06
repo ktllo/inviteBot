@@ -11,6 +11,7 @@ class Config{
 	String ident;
 	boolean ssl;
 	String [] listenList;
+	String escape;
 	public Config() throws FileNotFoundException, IOException{
 		this("settings.properties");
 	}
@@ -30,6 +31,7 @@ class Config{
 		ssl = Boolean.parseBoolean(setting.getProperty("ssl", "false"));
 		String listen = setting.getProperty("listen","");
 		listenList = listen.split(",");
+		escape = setting.getProperty("escape", "!");
 	}
 	
 }

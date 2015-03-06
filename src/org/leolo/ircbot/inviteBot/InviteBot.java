@@ -32,7 +32,6 @@ public class InviteBot{
 			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.nick, config.password));
 		}
 		
-		b.addAutoJoinChannel("###ktllobottest");
 		PircBotX myBot = new PircBotX(b.buildConfiguration());
 		try {
 			myBot.startBot();
