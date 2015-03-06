@@ -1,5 +1,6 @@
 server=chat.freenode.net
-port=6667
+port=7000
 password=
 nick=inviteBot
 ident=pircbot
+ssl=true
