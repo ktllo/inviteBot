@@ -17,10 +17,6 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	}
 	
 	public void onMessage(MessageEvent<PircBotX> event){
-		if(event.getMessage().equalsIgnoreCase(config.escape+"next")){
-			Question q = Question.next();
-			event.respond(q.getQuestion());
-			event.respond(Integer.toString(q.getSolution()));
-		}
+		
 	}
 }
