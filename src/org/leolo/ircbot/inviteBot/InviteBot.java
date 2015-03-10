@@ -14,6 +14,8 @@ import org.pircbotx.exception.IrcException;
 
 public class InviteBot{
 	
+	public static final String BOT_VERSION = "0.1-preview";
+	
 	public static void main(String [] args) throws IOException{
 		Config config;
 		if(args.length == 0)

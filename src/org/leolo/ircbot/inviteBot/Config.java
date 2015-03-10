@@ -14,6 +14,7 @@ class Config{
 	boolean ssl;
 	ArrayList<Channel> list;
 	String escape;
+	String [] admins;
 	public Config() throws FileNotFoundException, IOException{
 		this("settings.properties");
 	}
