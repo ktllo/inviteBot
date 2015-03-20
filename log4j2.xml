@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+	<Appenders>
+		<File name="file" fileName="app.log">
+			<PatternLayout>
+				<Pattern>%d %p [%t] %m %ex%n</Pattern>
+			</PatternLayout>
+		</File>
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout>
+                <Pattern>%d %p [%t] %m %ex%n</Pattern>
+            </PatternLayout>
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Root level="trace">
+			<AppenderRef ref="file" level="WARN"/>
+			<AppenderRef ref="STDOUT" level="DEBUG"/>
+		</Root>
+	</Loggers>
+</Configuration>

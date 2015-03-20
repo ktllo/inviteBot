@@ -10,4 +10,8 @@ public class Color {
 	public static String color(ColorName foreground,ColorName background){
 		return ESCAPE+background.getCode()+","+foreground.getCode();
 	}
+	
+	public static String defaultColor(){
+		return color(ColorName.WHITE,ColorName.BLACK);
+	}
 }

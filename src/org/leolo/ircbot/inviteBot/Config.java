@@ -11,6 +11,7 @@ class Config {
 		private String[] exemptMask;
 		private String[] exemptNick;
 		private String listenChannel;
+		private String reportChannel;
 
 		Channel(java.util.Properties setting, String key) {
 			this.channelName = setting.getProperty(key + ".join");
@@ -18,7 +19,7 @@ class Config {
 			exemptMask = setting.getProperty(key + ".exemptMask", "")
 					.split(",");
 			exemptNick = setting.getProperty(key + ".exempt", "").split(",");
-
+			this.reportChannel = setting.getProperty(key + ".report","");
 		}
 
 		public String getChannelName() {
@@ -37,26 +38,16 @@ class Config {
 			return listenChannel;
 		}
 
-		@Override
-		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append("Channel [channelName=");
-			builder.append(channelName);
-			builder.append(", listenChannel=");
-			builder.append(listenChannel);
-			builder.append(", exemptMask=");
-			builder.append(Arrays.toString(exemptMask));
-			builder.append(", exemptNick=");
-			builder.append(Arrays.toString(exemptNick));
-			builder.append("]");
-			return builder.toString();
+		public String getReportChannel() {
+			return reportChannel;
 		}
+
 
 	}
 	private String[] admins;
 	private String escape;
 	private String ident;
-	private ArrayList<Channel> list;
+	private ArrayList<Channel> channelList;
 	private String nick;
 	private String password;
 	private int port;
@@ -69,7 +60,7 @@ class Config {
 	}
 
 	public Config(String file) throws FileNotFoundException, IOException {
-		list = new ArrayList<>();
+		channelList = new ArrayList<>();
 		java.util.Properties setting = new java.util.Properties();
 		setting.load(new java.io.FileInputStream(file));
 		server = setting.getProperty("server", "chat.freenode.net");
@@ -84,7 +75,7 @@ class Config {
 		ssl = Boolean.parseBoolean(setting.getProperty("ssl", "false"));
 		String[] keys = setting.getProperty("key", "").split(",");
 		for (String s : keys) {
-			list.add(new Channel(setting, s));
+			channelList.add(new Channel(setting, s));
 		}
 		escape = setting.getProperty("escape", "!");
 	}
@@ -102,7 +93,7 @@ class Config {
 	}
 
 	public ArrayList<Channel> getList() {
-		return list;
+		return channelList;
 	}
 
 	public String getNick() {
@@ -123,6 +114,25 @@ class Config {
 
 	public boolean isSSL() {
 		return ssl;
+	}
+	
+	public String[] getChannelList(){
+		ArrayList<String> list = new ArrayList<>();
+		//TODO: Create list
+		for(Channel c:channelList){
+			if(!list.contains(c.channelName))
+				list.add(c.channelName);
+			if(!list.contains(c.listenChannel))
+				list.add(c.listenChannel);
+			if(!list.contains(c.reportChannel) && c.reportChannel.length() > 0)
+				list.add(c.reportChannel);
+		}
+		String [] result = new String[list.size()];
+		for(int i=0;i<list.size();i++){
+			result[i]=list.get(i);
+		}
+		return result;
+		
 	}
 
 }

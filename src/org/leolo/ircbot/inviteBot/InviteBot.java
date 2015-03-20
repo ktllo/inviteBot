@@ -28,7 +28,8 @@ public class InviteBot{
 		.setLogin(config.getIdent()) //Login part of hostmask, eg name:login@host
 		.setAutoNickChange(true) //Automatically change nick when the current one is in use
 		.setServer(config.getServer(), config.getPort())
-		.addListener(new Inviter(config));
+		.addListener(new Inviter(config))
+		.addListener(new Console(config));
 		if(config.isSSL()){
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
 			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.getNick(), config.getPassword()));
