@@ -3,6 +3,8 @@ package org.leolo.ircbot.inviteBot;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.leolo.ircbot.inviteBot.util.Pair;
+
 public abstract class Question {
 	public abstract String getQuestion();
 	
@@ -23,33 +25,37 @@ public abstract class Question {
 	}
 	
 	public static Random generator;
-	private static ArrayList<Class<? extends Question>> list;
+	private static ArrayList<Pair<Class<? extends Question>,Integer>> list;
 	private static int listWeight;
 	static{
 		list = new ArrayList<>();
-		list.add(Add.class);
-		list.add(Subtract.class);
 		generator = new Random();
-		rebuildWeight();
+		
+		try {
+			add(Subtract.class);
+			add(Add.class);
+		} catch (InstantiationException|IllegalAccessException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static void rebuildWeight(){
-		
 		listWeight = 0;
-		try{
-			for(Class<? extends Question> q:list)
-				listWeight += q.newInstance().getRatio();
-		}catch(IllegalAccessException | InstantiationException ie){
-			ie.printStackTrace();
-		}
+		for(Pair<Class<? extends Question>, Integer> q:list)
+			listWeight += q.getB();
+	}
+	
+	public static void add(Class<? extends Question> q) throws InstantiationException, IllegalAccessException{
+		list.add(new Pair<Class<? extends Question>,Integer>(q,q.newInstance().getRatio()));
+		rebuildWeight();
 	}
 	
 	public static Question next(){
 		int rand = generator.nextInt(listWeight);
 		try{
-			for(Class<? extends Question> q:list){
-				if( (rand -= q.newInstance().getRatio()) < 0){
-					return q.newInstance();
+			for(Pair<Class<? extends Question>,Integer> q:list){
+				if( (rand -= q.getB()) < 0){
+					return q.getA().newInstance();
 				}
 			}
 		}catch(IllegalAccessException | InstantiationException ie){
