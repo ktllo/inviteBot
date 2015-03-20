@@ -5,61 +5,24 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-class Config{
-	String server;
-	int port;
-	String password;
-	String nick;
-	String ident;
-	boolean ssl;
-	ArrayList<Channel> list;
-	String escape;
-	String [] admins;
-	public Config() throws FileNotFoundException, IOException{
-		this("settings.properties");
-	}
-	
-	public Config(String file) throws FileNotFoundException, IOException{
-		list = new ArrayList<>();
-		java.util.Properties setting = new java.util.Properties();
-		setting.load(new java.io.FileInputStream(file));
-		server = setting.getProperty("server","chat.freenode.net");
-		try{
-			port = Integer.parseInt(setting.getProperty("port"));
-		}catch(NumberFormatException nfe){
-			port = 6667;
-		}
-		password = setting.getProperty("password","");
-		nick = setting.getProperty("nick","inviteBot");
-		ident = setting.getProperty("ident","pircbot");
-		ssl = Boolean.parseBoolean(setting.getProperty("ssl", "false"));
-		String [] keys = setting.getProperty("key", "").split(",");
-		for(String s:keys){
-			list.add(new Channel(setting,s));
-		}
-		escape = setting.getProperty("escape", "!");
-	}
-	
-	class Channel{
+class Config {
+	class Channel {
 		private String channelName;
+		private String[] exemptMask;
+		private String[] exemptNick;
 		private String listenChannel;
-		private String [] exemptMask;
-		private String [] exemptNick;
-		
-		Channel(java.util.Properties setting,String key){
-			this.channelName = setting.getProperty(key+".join");
-			this.listenChannel = setting.getProperty(key+".listen");
-			exemptMask = setting.getProperty(key+".exemptMask", "").split(",");
-			exemptNick = setting.getProperty(key+".exempt", "").split(",");
-			
+
+		Channel(java.util.Properties setting, String key) {
+			this.channelName = setting.getProperty(key + ".join");
+			this.listenChannel = setting.getProperty(key + ".listen");
+			exemptMask = setting.getProperty(key + ".exemptMask", "")
+					.split(",");
+			exemptNick = setting.getProperty(key + ".exempt", "").split(",");
+
 		}
 
 		public String getChannelName() {
 			return channelName;
-		}
-
-		public String getListenChannel() {
-			return listenChannel;
 		}
 
 		public String[] getExemptMask() {
@@ -68,6 +31,10 @@ class Config{
 
 		public String[] getExemptNick() {
 			return exemptNick;
+		}
+
+		public String getListenChannel() {
+			return listenChannel;
 		}
 
 		@Override
@@ -85,7 +52,77 @@ class Config{
 			return builder.toString();
 		}
 
-		
 	}
-	
+	private String[] admins;
+	private String escape;
+	private String ident;
+	private ArrayList<Channel> list;
+	private String nick;
+	private String password;
+	private int port;
+	private String server;
+
+	private boolean ssl;
+
+	public Config() throws FileNotFoundException, IOException {
+		this("settings.properties");
+	}
+
+	public Config(String file) throws FileNotFoundException, IOException {
+		list = new ArrayList<>();
+		java.util.Properties setting = new java.util.Properties();
+		setting.load(new java.io.FileInputStream(file));
+		server = setting.getProperty("server", "chat.freenode.net");
+		try {
+			port = Integer.parseInt(setting.getProperty("port"));
+		} catch (NumberFormatException nfe) {
+			port = 6667;
+		}
+		password = setting.getProperty("password", "");
+		nick = setting.getProperty("nick", "inviteBot");
+		ident = setting.getProperty("ident", "pircbot");
+		ssl = Boolean.parseBoolean(setting.getProperty("ssl", "false"));
+		String[] keys = setting.getProperty("key", "").split(",");
+		for (String s : keys) {
+			list.add(new Channel(setting, s));
+		}
+		escape = setting.getProperty("escape", "!");
+	}
+
+	public String[] getAdmins() {
+		return admins;
+	}
+
+	public String getEscape() {
+		return escape;
+	}
+
+	public String getIdent() {
+		return ident;
+	}
+
+	public ArrayList<Channel> getList() {
+		return list;
+	}
+
+	public String getNick() {
+		return nick;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public String getServer() {
+		return server;
+	}
+
+	public boolean isSSL() {
+		return ssl;
+	}
+
 }
