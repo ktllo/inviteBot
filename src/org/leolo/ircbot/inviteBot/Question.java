@@ -1,12 +1,61 @@
 package org.leolo.ircbot.inviteBot;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 public abstract class Question {
 	public abstract String getQuestion();
+	
+	@Deprecated
 	public abstract int getSolution();
+	
+	public boolean verifyAnswer(String answer){
+		try{
+			int sol = Integer.parseInt(answer);
+			return sol == getSolution();
+		}catch(RuntimeException re){
+			return false;
+		}
+	}
+	
+	public int getRatio(){
+		return  100;
+	}
+	
+	public static Random generator;
+	private static ArrayList<Class<? extends Question>> list;
+	private static int listWeight;
+	static{
+		list = new ArrayList<>();
+		list.add(Add.class);
+		list.add(Subtract.class);
+		generator = new Random();
+		rebuildWeight();
+	}
+	
+	private static void rebuildWeight(){
+		
+		listWeight = 0;
+		try{
+			for(Class<? extends Question> q:list)
+				listWeight += q.newInstance().getRatio();
+		}catch(IllegalAccessException | InstantiationException ie){
+			ie.printStackTrace();
+		}
+	}
+	
 	public static Question next(){
-		if(Math.random() > 0.5)
-			return new Add();
-		return new Subtract();
+		int rand = generator.nextInt(listWeight);
+		try{
+			for(Class<? extends Question> q:list){
+				if( (rand -= q.newInstance().getRatio()) < 0){
+					return q.newInstance();
+				}
+			}
+		}catch(IllegalAccessException | InstantiationException ie){
+			ie.printStackTrace();
+		}
+		return new Add();
 	}
 	
 	
@@ -17,7 +66,7 @@ enum QuestionType{
 	SYMBOL;
 	
 	public static QuestionType nextType(){
-		if(Math.random() > 0.5)
+		if(Question.generator.nextDouble() > 0.5)
 			return TEXT;
 		return SYMBOL;
 	}
@@ -45,6 +94,16 @@ class Add extends Question{
 	@Override
 	public int getSolution() {
 		return op1.getNumber() + op2.getNumber();
+	}
+
+	@Override
+	public boolean verifyAnswer(String answer) {
+		try{
+			int ans = Integer.parseInt(answer);
+			return ans == getSolution();
+		}catch(NumberFormatException nfe){
+			return false;
+		}
 	}
 	
 }
@@ -76,6 +135,16 @@ class Subtract extends Question{
 	@Override
 	public int getSolution() {
 		return op1.getNumber() - op2.getNumber();
+	}
+
+	@Override
+	public boolean verifyAnswer(String answer) {
+		try{
+			int ans = Integer.parseInt(answer);
+			return ans == getSolution();
+		}catch(NumberFormatException nfe){
+			return false;
+		}
 	}
 	
 }

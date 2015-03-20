@@ -6,7 +6,7 @@ public class NumericalNumber extends NumberPhase {
 	
 	public static NumberPhase next() {
 		NumericalNumber nn = new NumericalNumber();
-		nn.num = (int)(Math.random()*100);
+		nn.num = Question.generator.nextInt(100);
 		return nn;
 	}
 

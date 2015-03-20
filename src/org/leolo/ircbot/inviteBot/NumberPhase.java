@@ -5,7 +5,7 @@ public abstract class NumberPhase implements Comparable<NumberPhase>{
 	public abstract int getNumber();
 	
 	public static NumberPhase next(){
-		if(Math.random() > 0.5){
+		if(Question.generator.nextDouble() > 0.5){
 			return EnglishNumber.next();
 		}else{
 			return NumericalNumber.next();

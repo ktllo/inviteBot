@@ -37,7 +37,7 @@ public final class EnglishNumber extends NumberPhase{
 			"<Placeholder>"
 	};
 	public static NumberPhase next() {
-		return new EnglishNumber((int)(Math.random()*100));
+		return new EnglishNumber(Question.generator.nextInt(100));
 	}
 
 	@Override
