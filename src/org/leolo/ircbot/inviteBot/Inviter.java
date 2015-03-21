@@ -90,9 +90,9 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		}
 		
 		public void run(){
-			logger.info(USAGE, event.getUser().getNick()+" entering. Sleep for 60000ms");
+			logger.info(USAGE, event.getUser().getNick()+" entering. Sleep for 2000ms");
 			try{
-				sleep(60000);//TODO: Set it back to 2000
+				sleep(2000);//TODO: Set it back to 2000
 			}catch(InterruptedException ie){
 				logger.error("Interrupt Received", ie);
 			}
@@ -103,12 +103,30 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 				return;
 			}
 			//TODO: Check is target in targets
+			ArrayList<String> removeList = new ArrayList<>();
+			for(org.pircbotx.Channel c:event.getUser().getChannels()){
+				for(String s:record.getTargetList()){
+					if(c.getName().equalsIgnoreCase(s))
+						removeList.add(s);
+				}
+			}
+			record.getTargetList().removeAll(removeList);
+			if(record.getTargetList().size() == 0){
+				pendingItems.remove(record);
+				logger.info(USAGE, event.getUser().getNick()+" already in all target");
+				return;
+			}
 			logger.info(USAGE, "Sending notice to "+event.getUser().getNick());
 			OutputIRC out = event.getBot().sendIRC();
 			out.notice(event.getUser().getNick(), 
 					config.getWelcomeMessage().replaceAll(
 							"%t", record.getTargetList().get(0)
 							));
+			out.notice(event.getUser().getNick(), 
+					"Please type /msg "+event.getBot().getNick()+" <answer> to answer the question");
+			out.notice(event.getUser().getNick(), record.getQuestion().getQuestion());
+			
+			
 		}
 
 		public JoinEvent<PircBotX> getEvent() {
