@@ -1,11 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
 	<Appenders>
-		<File name="file" fileName="app.log">
-			<PatternLayout>
-				<Pattern>%d %p [%t] %m %ex%n</Pattern>
-			</PatternLayout>
-		</File>
+		<RollingFile name="use" fileName="access.log" filePattern="access.%i.log">
+		    <PatternLayout>
+		        <Pattern>%d %m%n</Pattern>
+		    </PatternLayout>
+		    <Policies>
+				<SizeBasedTriggeringPolicy size="10 MB"/>
+			</Policies>
+			<DefaultRolloverStrategy max="20"/>
+		    <MarkerFilter marker="usage" onMatch="ACCEPT" onMismatch="DENY"/>
+		</RollingFile>
+		<RollingFile name="file" fileName="bot.log" filePattern="bot.%i.log">
+            <PatternLayout>
+                <Pattern>%d %p [%t] %m %ex%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
 		<Console name="STDOUT" target="SYSTEM_OUT">
 			<PatternLayout>
                 <Pattern>%d %p [%t] %m %ex%n</Pattern>
@@ -16,6 +30,7 @@
 		<Root level="trace">
 			<AppenderRef ref="file" level="WARN"/>
 			<AppenderRef ref="STDOUT" level="DEBUG"/>
+			<AppenderRef ref="use" level="trace"/>
 		</Root>
 	</Loggers>
 </Configuration>

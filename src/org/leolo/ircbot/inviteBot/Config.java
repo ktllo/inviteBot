@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.leolo.ircbot.inviteBot.util.Glob;
+import org.pircbotx.User;
+
 class Config {
 	class Channel {
 		private String channelName;
@@ -52,6 +55,7 @@ class Config {
 	private String password;
 	private int port;
 	private String server;
+	private String welcomeMessage;
 
 	private boolean ssl;
 
@@ -78,6 +82,7 @@ class Config {
 			channelList.add(new Channel(setting, s));
 		}
 		escape = setting.getProperty("escape", "!");
+		welcomeMessage = setting.getProperty("welcome", "Welcome to %t!");
 	}
 
 	public String[] getAdmins() {
@@ -116,6 +121,10 @@ class Config {
 		return ssl;
 	}
 	
+	protected java.util.List<Channel> getChannels(){
+		return channelList;
+	}
+	
 	public String[] getChannelList(){
 		ArrayList<String> list = new ArrayList<>();
 		//TODO: Create list
@@ -133,6 +142,20 @@ class Config {
 		}
 		return result;
 		
+	}
+	
+	public boolean isAdmin(User user){
+		for(String admin:admins){
+			if(Glob.match(admin, user.getNick()))
+				return true;
+			if(Glob.match(admin, user.getHostmask()))
+				return true;
+		}
+		return false;
+	}
+
+	public String getWelcomeMessage() {
+		return welcomeMessage;
 	}
 
 }
