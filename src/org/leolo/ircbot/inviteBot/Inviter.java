@@ -29,7 +29,6 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	}
 	
 	public void onJoin(JoinEvent<PircBotX> event){
-		//TODO:Check is the channel a listening channel
 		ArrayList<String> targetList = new ArrayList<>();
 		for(Config.Channel c:config.getChannels()){
 			if(event.getChannel().getName().equalsIgnoreCase(c.getListenChannel())){
@@ -92,17 +91,15 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		public void run(){
 			logger.info(USAGE, event.getUser().getNick()+" entering. Sleep for 2000ms");
 			try{
-				sleep(2000);//TODO: Set it back to 2000
+				sleep(2000);
 			}catch(InterruptedException ie){
 				logger.error("Interrupt Received", ie);
 			}
-			//TODO: Check is target parted
 			if(record.getStatus() == JoinRecord.Status.PARTED){
 				logger.info(USAGE, event.getUser().getNick()+" parted before sending notice.");
 				pendingItems.remove(record);
 				return;
 			}
-			//TODO: Check is target in targets
 			ArrayList<String> removeList = new ArrayList<>();
 			for(org.pircbotx.Channel c:event.getUser().getChannels()){
 				for(String s:record.getTargetList()){
