@@ -83,6 +83,7 @@ class Config {
 		}
 		escape = setting.getProperty("escape", "!");
 		welcomeMessage = setting.getProperty("welcome", "Welcome to %t!");
+		admins = setting.getProperty("admin", "").split(",");
 	}
 
 	public String[] getAdmins() {

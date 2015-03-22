@@ -2,9 +2,12 @@ package org.leolo.ircbot.inviteBot;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
+import org.apache.logging.log4j.message.Message;
 import org.leolo.ircbot.inviteBot.util.*;
+import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
@@ -14,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+import com.google.common.collect.ImmutableSortedSet;
+
 public class Inviter extends ListenerAdapter<PircBotX>{
 	
 	final Logger logger = LoggerFactory.getLogger(Inviter.class);
@@ -22,13 +27,26 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	
 	protected Vector<JoinRecord> pendingItems = new Vector<>();
 	
+	protected Vector<String> changingHost = new Vector<>();
 	private Config config;
 	
 	Inviter(Config config){
 		this.config = config;
+		new ItemCleaner(config,this).start();
 	}
 	
 	public void onJoin(JoinEvent<PircBotX> event){
+		if(event.getUser().getNick().equalsIgnoreCase(config.getNick())){
+			return;
+		}
+		for(String s:changingHost){
+			if(event.getUser().getNick().equalsIgnoreCase(s)){
+				for(JoinRecord record:pendingItems){
+					record.setStatus(JoinRecord.Status.NORMAL);
+				}
+			}
+		}
+		changingHost.remove(event.getUser().getNick());
 		ArrayList<String> targetList = new ArrayList<>();
 		for(Config.Channel c:config.getChannels()){
 			if(event.getChannel().getName().equalsIgnoreCase(c.getListenChannel())){
@@ -44,7 +62,40 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	}
 	
 	public void onMessage(MessageEvent<PircBotX> event){
-		
+		String message = event.getMessage().toLowerCase();
+		if(message.startsWith(config.getEscape()+"invite")){
+			if(config.isAdmin(event.getUser())){
+				String [] userList = message.split(" ");
+				//index 0 is the command
+				for(int i=1;i<userList.length;i++){
+					int count = invite(userList[i],event.getBot().sendIRC());
+					if(count == 0)
+						break;
+					logger.debug(USAGE, "Invited user "+userList[i]+" into "+
+							count+" channel");
+					event.getBot().sendIRC().notice(event.getUser().getNick(),
+							"Invited user "+userList[i]+" into "+
+									count+" channel");
+				}
+			}
+		}
+	}
+	
+	private int invite(String nick,OutputIRC out){
+		int count = 0;
+		for(JoinRecord record:pendingItems){
+			for(String channel:record.getTargetList()){
+				if(record.getStatus() != JoinRecord.Status.NORMAL)
+					continue;
+				out.invite(nick, channel);
+				out.notice(nick, "You may now join "+channel);
+				long time = (new Date().getTime() - record.getCreated().getTime())/1000;
+				logger.info(USAGE,"Invited "+nick+" into channel( Time used "
+						+time+" seconds)");
+			}
+			record.setStatus(JoinRecord.Status.INVITED);
+		}
+		return count;
 	}
 	
 	public void onPart(PartEvent<PircBotX> event){
@@ -56,7 +107,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		}
 	}
 	
-	public void onConnect(ConnectEvent<PircBotX> event){
+	public void onConnect(final ConnectEvent<PircBotX> event){
 		for(String s:config.getChannelList()){
 			event.getBot().sendIRC().joinChannel(s);
 		}
@@ -73,7 +124,11 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	public void onQuit(QuitEvent<PircBotX> event){
 		for(JoinRecord r:pendingItems){
 			if(r.getNick().equalsIgnoreCase(event.getUser().getNick())){
-				r.setStatus(JoinRecord.Status.PARTED);
+				if(event.getReason().equalsIgnoreCase("Changing host")){
+					r.setStatus(JoinRecord.Status.HOST_CHANGE);
+				}else{
+					r.setStatus(JoinRecord.Status.PARTED);
+				}
 			}
 		}
 	}
@@ -178,7 +233,7 @@ class JoinRecord{
 		HOST_CHANGE,
 		NORMAL,
 		INVITED,
-		REMOVED,
+		REMOVE_PENDING,
 		PARTED;
 	}
 

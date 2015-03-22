@@ -16,20 +16,21 @@ public class InviteBot{
 	
 	public static final String BOT_VERSION = "0.1-preview";
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void main(String [] args) throws IOException{
 		Config config;
 		if(args.length == 0)
 			config = new Config();
 		else
 			config = new Config(args[0]);
-		@SuppressWarnings({ "unchecked", "rawtypes" })
+		Inviter inviter = new Inviter(config);
 		Builder b = new Configuration.Builder()
 		.setName(config.getNick()) //Nick of the bot. CHANGE IN YOUR CODE
 		.setLogin(config.getIdent()) //Login part of hostmask, eg name:login@host
 		.setAutoNickChange(true) //Automatically change nick when the current one is in use
 		.setServer(config.getServer(), config.getPort())
-		.addListener(new Inviter(config))
-		.addListener(new Console(config));
+		.addListener(inviter)
+		.addListener(new Console(config,inviter));
 		if(config.isSSL()){
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
 			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.getNick(), config.getPassword()));

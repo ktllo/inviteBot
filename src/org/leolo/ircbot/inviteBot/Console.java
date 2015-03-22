@@ -15,8 +15,10 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	
 	private Config config;
-	public Console(Config config) {
+	private Inviter inviter;
+	public Console(Config config,Inviter inviter) {
 		this.config=config;
+		this.inviter = inviter;
 	}
 	
 	public void onMessage(MessageEvent<PircBotX> event){
@@ -51,6 +53,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 		if(message.startsWith("ping")){
 			return "pong";
 		}
+		
 		return "";
 	}
 
