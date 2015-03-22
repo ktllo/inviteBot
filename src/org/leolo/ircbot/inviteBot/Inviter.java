@@ -62,29 +62,19 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	}
 	
 	public void onMessage(MessageEvent<PircBotX> event){
-		String message = event.getMessage().toLowerCase();
-		if(message.startsWith(config.getEscape()+"invite")){
-			if(config.isAdmin(event.getUser())){
-				String [] userList = message.split(" ");
-				//index 0 is the command
-				for(int i=1;i<userList.length;i++){
-					int count = invite(userList[i],event.getBot().sendIRC());
-					if(count == 0)
-						break;
-					logger.debug(USAGE, "Invited user "+userList[i]+" into "+
-							count+" channel");
-					event.getBot().sendIRC().notice(event.getUser().getNick(),
-							"Invited user "+userList[i]+" into "+
-									count+" channel");
-				}
-			}
-		}
+		
 	}
 	
-	private int invite(String nick,OutputIRC out){
+	protected int invite(String nick,OutputIRC out){
 		int count = 0;
+		logger.debug("Handling "+nick);
 		for(JoinRecord record:pendingItems){
+			logger.debug("Processing "+record.getNick());
+			if(!record.getNick().equalsIgnoreCase(nick))
+				continue;
+			logger.debug("Nick matched");
 			for(String channel:record.getTargetList()){
+				logger.debug("Status is "+record.getStatus().name());
 				if(record.getStatus() != JoinRecord.Status.NORMAL)
 					continue;
 				out.invite(nick, channel);
@@ -92,6 +82,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 				long time = (new Date().getTime() - record.getCreated().getTime())/1000;
 				logger.info(USAGE,"Invited "+nick+" into channel( Time used "
 						+time+" seconds)");
+				count++;
 			}
 			record.setStatus(JoinRecord.Status.INVITED);
 		}
@@ -178,7 +169,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 					"Please type /msg "+event.getBot().getNick()+" <answer> to answer the question");
 			out.notice(event.getUser().getNick(), record.getQuestion().getQuestion());
 			
-			
+			record.setStatus(JoinRecord.Status.NORMAL);
 		}
 
 		public JoinEvent<PircBotX> getEvent() {

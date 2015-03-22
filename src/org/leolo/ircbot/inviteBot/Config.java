@@ -122,7 +122,7 @@ class Config {
 		return ssl;
 	}
 	
-	protected java.util.List<Channel> getChannels(){
+	public java.util.List<Channel> getChannels(){
 		return channelList;
 	}
 	
@@ -147,10 +147,9 @@ class Config {
 	
 	public boolean isAdmin(User user){
 		for(String admin:admins){
-			if(Glob.match(admin, user.getNick()))
+			if(Glob.match(admin, user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask()))
 				return true;
-			if(Glob.match(admin, user.getHostmask()))
-				return true;
+			
 		}
 		return false;
 	}
