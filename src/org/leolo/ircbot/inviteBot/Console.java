@@ -29,7 +29,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 		String msg = processMessage(
 				event.getMessage().substring(config.getEscape().length()),
 				event.getUser(),
-				event.getBot());
+				event.getBot(),
+				event.getChannel().getName());
 		if(msg.length()>0){
 			String [] lines = msg.split("\n");
 			for(String line:lines){
@@ -41,7 +42,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 	public void onPrivateMessage(PrivateMessageEvent<PircBotX> event){
 		String msg = processMessage(event.getMessage(),
 				event.getUser(),
-				event.getBot());
+				event.getBot(),
+				event.getUser().getNick());
 		if(msg.length()>0){
 			String [] lines = msg.split("\n");
 			for(String line:lines){
@@ -52,18 +54,18 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 
 	
-	private String processMessage(String message,User user,PircBotX bot){
+	private String processMessage(String message,User user,PircBotX bot,String source){
 		message = message.toLowerCase();
 		logger.debug("Reveived message "+message);
 		if(message.startsWith("ping")){
 			return "pong";
 		}
 		if(message.startsWith("invite")){
-			if(config.isAdmin(user)){
+			if(config.isAdmin(user,source) || config.isListenChannel(source)){
 				logger.info(USAGE,user.getNick()+" inviting others");
 				String [] list = message.split(" ");
 				for(int i=1;i<list.length;i++){
-					int count = inviter.invite(list[i], bot.sendIRC());
+					int count = inviter.invite(list[i], bot.sendIRC(), user, source);
 					logger.info(USAGE,"Invited {} to {} channels",list[i],""+count);
 				}
 			}else{
@@ -71,6 +73,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				return "Only admin can do this";
 			}
 		}
+		
 		return "";
 	}
 

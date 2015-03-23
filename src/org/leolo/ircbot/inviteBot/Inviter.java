@@ -9,6 +9,7 @@ import org.apache.logging.log4j.message.Message;
 import org.leolo.ircbot.inviteBot.util.*;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
+import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
 import org.pircbotx.output.OutputIRC;
@@ -65,7 +66,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		
 	}
 	
-	protected int invite(String nick,OutputIRC out){
+	private int invite(String nick,OutputIRC out){
 		int count = 0;
 		logger.debug("Handling "+nick);
 		for(JoinRecord record:pendingItems){
@@ -80,12 +81,46 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 				out.invite(nick, channel);
 				out.notice(nick, "You may now join "+channel);
 				long time = (new Date().getTime() - record.getCreated().getTime())/1000;
-				logger.info(USAGE,"Invited "+nick+" into channel( Time used "
-						+time+" seconds)");
+				logger.info(USAGE,"Invited {} into channel {}"
+						+ "( Time used {} seconds)",
+						nick,channel,time);
 				count++;
 			}
 			record.setStatus(JoinRecord.Status.INVITED);
 		}
+		return count;
+	}
+	
+	protected int invite(String nick,OutputIRC out, User user, String source){
+		int count = 0;
+		logger.debug("Handling "+nick);
+		boolean canDo = false;
+		for(JoinRecord record:pendingItems){
+			logger.debug("Processing "+record.getNick());
+			if(!record.getNick().equalsIgnoreCase(nick))
+				continue;
+			logger.debug("Nick matched");
+			if(config.isAdmin(user, source) || config.isListenChannel(source)){
+				canDo = true;
+			}else{
+				continue;//Not authorized, but still may authorized in other case
+			}
+			for(String channel:record.getTargetList()){
+				logger.debug("Status is "+record.getStatus().name());
+				if(record.getStatus() != JoinRecord.Status.NORMAL)
+					continue;
+				out.invite(nick, channel);
+				out.notice(nick, "You may now join "+channel);
+				long time = (new Date().getTime() - record.getCreated().getTime())/1000;
+				logger.info(USAGE,"Invited {} by {} into channel {}"
+						+ "( Time used {} seconds)",
+						nick,user.getNick(),channel,time);
+				count++;
+			}
+			record.setStatus(JoinRecord.Status.INVITED);
+		}
+		if(!canDo)
+			throw new UnauthorizedOperationException();
 		return count;
 	}
 	

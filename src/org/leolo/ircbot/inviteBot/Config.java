@@ -15,7 +15,9 @@ class Config {
 		private String[] exemptNick;
 		private String listenChannel;
 		private String reportChannel;
-
+		private String[] admins;
+		private String adminkey;
+		
 		Channel(java.util.Properties setting, String key) {
 			this.channelName = setting.getProperty(key + ".join");
 			this.listenChannel = setting.getProperty(key + ".listen");
@@ -23,6 +25,8 @@ class Config {
 					.split(",");
 			exemptNick = setting.getProperty(key + ".exempt", "").split(",");
 			this.reportChannel = setting.getProperty(key + ".report","");
+			this.admins = setting.getProperty(key+",admin", "").split(",");
+			this.adminkey = setting.getProperty(key+".key", null);
 		}
 
 		public String getChannelName() {
@@ -45,7 +49,18 @@ class Config {
 			return reportChannel;
 		}
 
+		public boolean isAdmin(User user){
+			for(String admin:admins){
+				if(Glob.match(admin, user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask()))
+					return true;
+				
+			}
+			return false;
+		}
 
+		protected String getAdminkey() {
+			return adminkey;
+		}
 	}
 	private String[] admins;
 	private String escape;
@@ -145,7 +160,15 @@ class Config {
 		
 	}
 	
+	/**
+	 * To see is user <b>GLOBAL ADMIN</b>
+	 * @param user User to be checked
+	 * @return true if user is super admin
+	 */
+	@Deprecated
 	public boolean isAdmin(User user){
+		if(user.isIrcop())
+			return true;
 		for(String admin:admins){
 			if(Glob.match(admin, user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask()))
 				return true;
@@ -153,9 +176,47 @@ class Config {
 		}
 		return false;
 	}
-
+	
+	public boolean isAdmin(User user,String channel){
+		if(isAdmin(user))
+			return true;
+		for(Channel c:channelList){
+			if(channel.equalsIgnoreCase(c.channelName) ||
+					channel.equalsIgnoreCase(c.listenChannel) ||
+					channel.equalsIgnoreCase(c.reportChannel)){
+				if(c.isAdmin(user))
+					return true;
+			}	
+		}
+		return false;
+	}
+	
+	public boolean isAdmin(String key,String channel){
+		for(Channel c:channelList){
+			if(channel.equalsIgnoreCase(c.channelName) ||
+					channel.equalsIgnoreCase(c.listenChannel) ||
+					channel.equalsIgnoreCase(c.reportChannel)){
+				if(c.adminkey.equalsIgnoreCase(key))
+					return true;
+			}	
+		}
+		return false;
+	}
+	
+	public boolean isGlobalAdmin(User user){
+		return isAdmin(user);
+	}
+	
 	public String getWelcomeMessage() {
 		return welcomeMessage;
+	}
+
+	public boolean isListenChannel(String source) {
+		for(Channel channel:channelList){
+			if(channel.listenChannel.equalsIgnoreCase(source))
+				return true;
+		}
+		return false;
 	}
 
 }
