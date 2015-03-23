@@ -24,17 +24,29 @@ public class Console extends ListenerAdapter<PircBotX> {
 	}
 	
 	public void onMessage(MessageEvent<PircBotX> event){
-		if(!event.getMessage().startsWith(config.getEscape()))
-			return;
-		String msg = processMessage(
-				event.getMessage().substring(config.getEscape().length()),
-				event.getUser(),
-				event.getBot(),
-				event.getChannel().getName());
-		if(msg.length()>0){
-			String [] lines = msg.split("\n");
-			for(String line:lines){
-				event.respond(line);
+		if(event.getMessage().startsWith(config.getEscape())){
+			String msg = processMessage(
+					event.getMessage().substring(config.getEscape().length()),
+					event.getUser(),
+					event.getBot(),
+					event.getChannel().getName());
+			if(msg.length()>0){
+				String [] lines = msg.split("\n");
+				for(String line:lines){
+					event.respond(line);
+				}
+			}
+		}else if(event.getMessage().startsWith(event.getBot().getNick()+" ")){
+			String msg = processMessage(
+					event.getMessage().substring(event.getBot().getNick().length()+1),
+					event.getUser(),
+					event.getBot(),
+					event.getChannel().getName());
+			if(msg.length()>0){
+				String [] lines = msg.split("\n");
+				for(String line:lines){
+					event.respond(line);
+				}
 			}
 		}
 	}
