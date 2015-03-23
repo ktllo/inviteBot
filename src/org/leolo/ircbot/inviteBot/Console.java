@@ -61,16 +61,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 			return "pong";
 		}
 		if(message.startsWith("invite")){
-			if(config.isAdmin(user,source) || config.isListenChannel(source)){
-				logger.info(USAGE,user.getNick()+" inviting others");
-				String [] list = message.split(" ");
-				for(int i=1;i<list.length;i++){
+			logger.info(USAGE,user.getNick()+" inviting others");
+			String [] list = message.split(" ");
+			for(int i=1;i<list.length;i++){
+				try{
 					int count = inviter.invite(list[i], bot.sendIRC(), user, source);
 					logger.info(USAGE,"Invited {} to {} channels",list[i],""+count);
+				}catch(UnauthorizedOperationException uoe){
+					logger.warn("User {} attempted to invite {} but he/she wasn't "
+							+ "authroized to do so.");
 				}
-			}else{
-				logger.info(USAGE,user.getNick()+" attempted to invite others");
-				return "Only admin can do this";
 			}
 		}
 		
