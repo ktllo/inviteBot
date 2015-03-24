@@ -14,3 +14,7 @@ To send command to the bot either
 
 * Admin command
     * `invite <user>[ ...]` To invite listed user listed without answering question
+
+#Admins
+Global admins are who are IRCOp, `admin` set in the settings.properties.
+Local admins are those set in `<key>.admin` set in settings.properties.
