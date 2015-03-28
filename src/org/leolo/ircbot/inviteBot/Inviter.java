@@ -54,13 +54,14 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 				record.remove(event.getChannel().getName());
 				if(record.getTargetList().size() == 0){
 					remove = record;
-					if(!config.isAdmin(event.getUser().getNick(), 
+					if(!config.isAdmin(event.getUser(), 
 							event.getChannel().getName()) ||
 					config.isExempted(event.getUser(), event.getChannel().getName())){
 						event.getBot().sendRaw().rawLine("remove "+
 								record.getSource()+" "+
 								event.getUser().getNick()+
 								" :Removed from holding channel");
+						record.setStatus(JoinRecord.Status.REMOVE_PENDING);
 					}
 				}
 			}
@@ -81,6 +82,15 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		JoinRecord record = new JoinRecord(targetList,event.getUser().getNick(),event.getChannel().getName());
 		pendingItems.add(record);
 		new PendingMessage(event,record).start();
+		if(config.getReportChannel(event.getChannel().getName())!=null){
+			event.getBot().sendIRC().message(
+					config.getReportChannel(event.getChannel().getName()), 
+					"User " + event.getUser().getNick() + 
+					"joined "+event.getChannel().getName()+" Q:" + 
+							record.getQuestion().getQuestion()+" Sol:"+
+							record.getQuestion().getSolution()
+			);
+		}
 	}
 	
 	public void onMessage(MessageEvent<PircBotX> event){
@@ -105,6 +115,9 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 				logger.info(USAGE,"Invited {} into channel {}"
 						+ "( Time used {} seconds)",
 						nick,channel,time);
+				if(config.getReportChannel(channel) != null)
+					out.message(config.getReportChannel(channel), 
+							"User "+nick+" invited to "+channel);
 				count++;
 			}
 			record.setStatus(JoinRecord.Status.INVITED);

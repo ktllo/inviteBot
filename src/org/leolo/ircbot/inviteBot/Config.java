@@ -240,5 +240,17 @@ class Config {
 		}
 		return false;
 	}
-
+	
+	public String getReportChannel(String channel){
+		for(Channel c:channelList){
+			if(c.channelName.equalsIgnoreCase(channel) || c.listenChannel.equalsIgnoreCase(channel)){
+				String target = c.reportChannel;
+				if(target.length() == 0)
+					return null;
+				return target;
+			}
+		}
+		return null;
+	}
+	
 }
