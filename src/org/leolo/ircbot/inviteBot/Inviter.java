@@ -48,6 +48,21 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 			}
 		}
 		changingHost.remove(event.getUser().getNick());
+		JoinRecord remove = null;
+		for(JoinRecord record:pendingItems){
+			if(record.getNick().equalsIgnoreCase(event.getUser().getNick())){
+				record.remove(event.getChannel().getName());
+				if(record.getTargetList().size() == 0){
+					remove = record;
+					event.getBot().sendRaw().rawLine("remove "+
+					record.getSource()+" "+event.getUser().getNick()+" :Requested by "+config.getNick());
+				}
+			}
+		}
+		if(remove != null ){
+			pendingItems.remove(remove);
+			return;
+		}
 		ArrayList<String> targetList = new ArrayList<>();
 		for(Config.Channel c:config.getChannels()){
 			if(event.getChannel().getName().equalsIgnoreCase(c.getListenChannel())){
@@ -159,6 +174,23 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		}
 	}
 	
+	public void onPrivateMessage(PrivateMessageEvent<PircBotX> event){
+		for(JoinRecord record:pendingItems){
+			if(record.getNick().equalsIgnoreCase(event.getUser().getNick())){
+				//Target matched
+				if(record.getQuestion().verifyAnswer(event.getMessage())){
+					//Answer correct
+					logger.info(USAGE, "User {} answer question correctly.",event.getUser().getNick());
+					this.invite(event.getUser().getNick(), event.getBot().sendIRC());
+				}else{
+					//Answer incorrect
+					logger.info(USAGE, "User {} answer question incorrectly.",event.getUser().getNick());
+					event.getBot().sendIRC().notice(event.getUser().getNick(), "Sorry, the answer is incorrect. Please try again.");
+				}
+			}
+		}
+	}
+	
 	class PendingMessage extends Thread{
 		
 		private JoinEvent<PircBotX> event;
@@ -237,6 +269,15 @@ class JoinRecord{
 		this.question = Question.next();
 		id = random.nextLong();
 		this.source = source;
+	}
+
+	public void remove(String name) {
+		for(int i=0;i<targetList.size();i++){
+			if(targetList.get(i).equalsIgnoreCase(name)){
+				targetList.remove(i);
+				return;
+			}
+		}
 	}
 
 	private static java.util.Random random;
