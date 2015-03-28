@@ -61,6 +61,19 @@ class Config {
 		protected String getAdminkey() {
 			return adminkey;
 		}
+		
+		public boolean isExempted(User user){
+			for(String nick:exemptNick){
+				if(user.getNick().equalsIgnoreCase(nick))
+					return true;
+			}
+			String hostmask = user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask();
+			for(String mask:exemptMask){
+				if(Glob.match(mask, hostmask))
+					return true;
+			}
+			return false;
+		}
 	}
 	private String[] admins;
 	private String escape;
@@ -215,6 +228,15 @@ class Config {
 		for(Channel channel:channelList){
 			if(channel.listenChannel.equalsIgnoreCase(source))
 				return true;
+		}
+		return false;
+	}
+	
+	public boolean isExempted(User user,String target){
+		for(Channel channel:channelList){
+			if(channel.channelName.equalsIgnoreCase(target)){
+				return channel.isExempted(user);
+			}
 		}
 		return false;
 	}

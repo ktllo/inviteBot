@@ -54,8 +54,14 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 				record.remove(event.getChannel().getName());
 				if(record.getTargetList().size() == 0){
 					remove = record;
-					event.getBot().sendRaw().rawLine("remove "+
-					record.getSource()+" "+event.getUser().getNick()+" :Requested by "+config.getNick());
+					if(!config.isAdmin(event.getUser().getNick(), 
+							event.getChannel().getName()) ||
+					config.isExempted(event.getUser(), event.getChannel().getName())){
+						event.getBot().sendRaw().rawLine("remove "+
+								record.getSource()+" "+
+								event.getUser().getNick()+
+								" :Removed from holding channel");
+					}
 				}
 			}
 		}
