@@ -2,12 +2,13 @@ package org.leolo.ircbot.inviteBot;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Vector;
 
-import org.apache.logging.log4j.message.Message;
-import org.leolo.ircbot.inviteBot.util.*;
-import org.pircbotx.Channel;
+
+
+
+import org.leolo.ircbot.inviteBot.util.Color;
+import org.leolo.ircbot.inviteBot.util.ColorName;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -18,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-import com.google.common.collect.ImmutableSortedSet;
 
 public class Inviter extends ListenerAdapter<PircBotX>{
 	
@@ -27,7 +27,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	final static Marker JOIN = MarkerFactory.getMarker("join");
 	
 	protected Vector<JoinRecord> pendingItems = new Vector<>();
-	
+	final long START = System.currentTimeMillis();
 	protected Vector<String> changingHost = new Vector<>();
 	private Config config;
 	
@@ -37,6 +37,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	}
 	
 	public void onJoin(JoinEvent<PircBotX> event){
+		System.err.println(event.getUser());
 		if(event.getUser().getNick().equalsIgnoreCase(config.getNick())){
 			return;
 		}
@@ -202,6 +203,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		}
 	}
 	
+	
 	class PendingMessage extends Thread{
 		
 		private JoinEvent<PircBotX> event;
@@ -251,8 +253,10 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 			if(config.getReportChannel(event.getChannel().getName())!=null){
 				event.getBot().sendIRC().message(
 						config.getReportChannel(event.getChannel().getName()), 
-						"User " + event.getUser().getNick() + 
-						"joined "+event.getChannel().getName()+" Q:" + 
+						"User " + Color.color(ColorName.RED)+
+						event.getUser().getNick() + "!" + event.getUser().getLogin() +
+						"@" + event.getUser().getHostmask() + Color.defaultColor() +
+						" joined "+event.getChannel().getName()+" Q:" + 
 								record.getQuestion().getQuestion()+" Sol:"+
 								record.getQuestion().getSolution()
 				);

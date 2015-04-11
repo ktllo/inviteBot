@@ -9,6 +9,7 @@ import org.pircbotx.Configuration;
 import org.pircbotx.Configuration.Builder;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.cap.EnableCapHandler;
 import org.pircbotx.cap.SASLCapHandler;
 import org.pircbotx.exception.IrcException;
 
@@ -35,7 +36,7 @@ public class InviteBot{
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
 			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.getNick(), config.getPassword()));
 		}
-		
+		b = b.addCapHandler(new EnableCapHandler("extended-join",false));
 		PircBotX myBot = new PircBotX(b.buildConfiguration());
 		try {
 			myBot.startBot();

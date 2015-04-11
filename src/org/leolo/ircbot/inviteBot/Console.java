@@ -87,12 +87,38 @@ public class Console extends ListenerAdapter<PircBotX> {
 		}
 		if(message.startsWith("info")){
 			if(config.isGlobalAdmin(user)){
-				return "Inviter size is "+inviter.pendingItems.size();
+				long uptime = System.currentTimeMillis() - inviter.START;
+				int upD = (int)(uptime/8640000);
+				int upH = ((int)(uptime/3600000))%24;
+				int upM = ((int)(uptime/60000))%60;
+				int upS = ((int)(uptime/1000))%60;
+				StringBuilder sb = new StringBuilder();
+				sb.append("Inviter size is "+inviter.pendingItems.size()+"\n");
+				sb.append("Uptime is ");
+				if( uptime > 8640000 )
+					sb.append(upD).append(" days ");
+				if( uptime > 360000 )
+					sb.append(upH).append(" hours ");
+				if( uptime > 60000 )
+					sb.append(upM).append(" minutes ");
+				if( uptime > 1000 )
+					sb.append(upS).append(" seconds ");
+				
+				return sb.toString();
 			}
 		}
 		if(message.startsWith("version")){
-			return "master-1711H11042015";
+			return "v1.0-preview (bowl cut)";
 		}
+		if(message.startsWith("resend")){
+			for(JoinRecord record:inviter.pendingItems){
+				if(record.getNick().equalsIgnoreCase(user.getNick())){
+					return record.getQuestion().getQuestion();
+				}
+			}
+			return "Record not found. Please part and rejoin.";
+		}
+		
 		return "";
 	}
 
