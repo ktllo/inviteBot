@@ -36,7 +36,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 					event.respond(line);
 				}
 			}
-		}else if(event.getMessage().startsWith(event.getBot().getNick()+" ")){
+		}else if(event.getMessage().toLowerCase().startsWith(event.getBot().getNick().toLowerCase()+" ")){
 			String msg = processMessage(
 					event.getMessage().substring(event.getBot().getNick().length()+1),
 					event.getUser(),
@@ -85,7 +85,14 @@ public class Console extends ListenerAdapter<PircBotX> {
 				}
 			}
 		}
-		
+		if(message.startsWith("info")){
+			if(config.isGlobalAdmin(user)){
+				return "Inviter size is "+inviter.pendingItems.size();
+			}
+		}
+		if(message.startsWith("version")){
+			return "master-1711H11042015";
+		}
 		return "";
 	}
 

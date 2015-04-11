@@ -73,7 +73,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		ArrayList<String> targetList = new ArrayList<>();
 		for(Config.Channel c:config.getChannels()){
 			if(event.getChannel().getName().equalsIgnoreCase(c.getListenChannel())){
-				logger.info(USAGE, event.getUser().getNick()+"@"+event.getUser().getHostmask()+" joined "+event.getChannel());
+				logger.info(USAGE, event.getUser().getNick()+"@"+event.getUser().getHostmask()+" joined "+event.getChannel().getName());
 				targetList.add(c.getChannelName());
 			}
 		}
@@ -82,15 +82,7 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		JoinRecord record = new JoinRecord(targetList,event.getUser().getNick(),event.getChannel().getName());
 		pendingItems.add(record);
 		new PendingMessage(event,record).start();
-		if(config.getReportChannel(event.getChannel().getName())!=null){
-			event.getBot().sendIRC().message(
-					config.getReportChannel(event.getChannel().getName()), 
-					"User " + event.getUser().getNick() + 
-					"joined "+event.getChannel().getName()+" Q:" + 
-							record.getQuestion().getQuestion()+" Sol:"+
-							record.getQuestion().getSolution()
-			);
-		}
+		
 	}
 	
 	public void onMessage(MessageEvent<PircBotX> event){
@@ -256,6 +248,15 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 			out.notice(event.getUser().getNick(), record.getQuestion().getQuestion());
 			
 			record.setStatus(JoinRecord.Status.NORMAL);
+			if(config.getReportChannel(event.getChannel().getName())!=null){
+				event.getBot().sendIRC().message(
+						config.getReportChannel(event.getChannel().getName()), 
+						"User " + event.getUser().getNick() + 
+						"joined "+event.getChannel().getName()+" Q:" + 
+								record.getQuestion().getQuestion()+" Sol:"+
+								record.getQuestion().getSolution()
+				);
+			}
 		}
 
 		public JoinEvent<PircBotX> getEvent() {
