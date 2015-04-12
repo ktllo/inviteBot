@@ -86,18 +86,18 @@ public class Console extends ListenerAdapter<PircBotX> {
 			}
 		}
 		if(message.startsWith("info")){
-			if(config.isGlobalAdmin(user)){
+			if(config.isGlobalAdmin(user) || config.isListenChannel(source)){
 				long uptime = System.currentTimeMillis() - inviter.START;
-				int upD = (int)(uptime/8640000);
+				int upD = (int)(uptime/86400000);
 				int upH = ((int)(uptime/3600000))%24;
 				int upM = ((int)(uptime/60000))%60;
 				int upS = ((int)(uptime/1000))%60;
 				StringBuilder sb = new StringBuilder();
 				sb.append("Inviter size is "+inviter.pendingItems.size()+"\n");
 				sb.append("Uptime is ");
-				if( uptime > 8640000 )
+				if( uptime > 86400000 )
 					sb.append(upD).append(" days ");
-				if( uptime > 360000 )
+				if( uptime > 3600000 )
 					sb.append(upH).append(" hours ");
 				if( uptime > 60000 )
 					sb.append(upM).append(" minutes ");
