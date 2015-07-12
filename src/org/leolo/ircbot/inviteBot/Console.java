@@ -67,12 +67,12 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	
 	private String processMessage(String message,User user,PircBotX bot,String source){
+		String rmessage = message;
 		message = message.toLowerCase();
 		logger.debug("Reveived message "+message);
 		if(message.startsWith("ping")){
 			return "pong";
-		}
-		if(message.startsWith("invite")){
+		}else if(message.startsWith("invite")){
 			logger.info(USAGE,user.getNick()+" inviting others");
 			String [] list = message.split(" ");
 			for(int i=1;i<list.length;i++){
@@ -84,9 +84,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 							+ "authroized to do so.");
 				}
 			}
-		}
-		if(message.startsWith("info")){
-			if(config.isGlobalAdmin(user) || config.isListenChannel(source)){
+		}else if(message.startsWith("info")){
+			//if(config.isGlobalAdmin(user) || config.isListenChannel(source)){
 				long uptime = System.currentTimeMillis() - inviter.START;
 				int upD = (int)(uptime/86400000);
 				int upH = ((int)(uptime/3600000))%24;
@@ -105,20 +104,60 @@ public class Console extends ListenerAdapter<PircBotX> {
 					sb.append(upS).append(" seconds ");
 				
 				return sb.toString();
-			}
-		}
-		if(message.startsWith("version")){
+			//}
+		}else if(message.startsWith("version")){
 			return "v1.0-preview (bowl cut)";
-		}
-		if(message.startsWith("resend")){
+		}else if(message.startsWith("resend")){
 			for(JoinRecord record:inviter.pendingItems){
 				if(record.getNick().equalsIgnoreCase(user.getNick())){
 					return record.getQuestion().getQuestion();
 				}
 			}
 			return "Record not found. Please part and rejoin.";
+		}else if(message.startsWith("help")){
+			String [] cmd = message.split(" ");
+			if(cmd.length == 1){
+				return "Available command: ping, invite, info, version, resend";
+			}else if(cmd[1].equalsIgnoreCase("ping")){
+				return "Check is the bot alive. No parametres";
+			}else if(cmd[1].equalsIgnoreCase("invite")){
+				StringBuilder sb = new StringBuilder();
+				sb.append(Color.color(ColorName.RED));
+				sb.append("ADMIN ONLY. ").append(Color.defaultColor());
+				sb.append("Invite user in holding channel without requiring them to answer the question\n");
+				sb.append("Parametres: List of nicks going to invite, sperated by space");
+				return sb.toString();
+			}else if(cmd[1].equalsIgnoreCase("info")){
+				return "Report uptime and the number of entry in the inviter";
+			}else if(cmd[1].equalsIgnoreCase("version")){
+				return "Version of the bot";
+			}else if(cmd[1].equalsIgnoreCase("resend")){
+				StringBuilder sb = new StringBuilder();
+				sb.append(Color.color(ColorName.DARK_BLUE));
+				sb.append("Should use in holding channel OR PM only. ").append(Color.defaultColor());
+				sb.append("Send the question for the requesting user as message in channel, if used in channel.\n");
+				sb.append("Send in PM if the command is sent via PM");
+				return sb.toString();
+			}
+		}else if(message.startsWith("nick")){
+			String [] cmd = rmessage.split(" ");
+			if(cmd.length == 1){
+				return Color.color(ColorName.RED)+"ERROR: NICKNAME REQUIRED";
+			}
+			if(config.isGlobalAdmin(user)){
+				bot.sendIRC().changeNick(cmd[1]);
+				try {
+					Thread.sleep(2500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				if(!bot.getNick().equals(cmd[1])){
+					return Color.color(ColorName.RED)+"ERROR: Nick change failed";
+				}
+			}else{
+				return Color.color(ColorName.RED)+"ERROR: UNAUTHORIZED";
+			}
 		}
-		
 		return "";
 	}
 

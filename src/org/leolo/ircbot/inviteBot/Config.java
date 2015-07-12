@@ -7,8 +7,11 @@ import java.util.Arrays;
 
 import org.leolo.ircbot.inviteBot.util.Glob;
 import org.pircbotx.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class Config {
+	final Logger logger = LoggerFactory.getLogger(Config.class);
 	class Channel {
 		private String channelName;
 		private String[] exemptMask;
@@ -191,20 +194,26 @@ class Config {
 	}
 	
 	public boolean isAdmin(User user,String channel){
+		logger.warn("User {}!{}@{} checking admin for channel {}", user.getNick(),user.getLogin(),user.getHostmask(), channel);
 		if(isAdmin(user))
 			return true;
 		for(Channel c:channelList){
-			if(channel.equalsIgnoreCase(c.channelName) ||
-					channel.equalsIgnoreCase(c.listenChannel) ||
-					channel.equalsIgnoreCase(c.reportChannel)){
-				if(c.isAdmin(user))
+//			if(channel.equalsIgnoreCase(c.channelName) ||
+//					channel.equalsIgnoreCase(c.listenChannel) ||
+//					channel.equalsIgnoreCase(c.reportChannel)){
+				logger.warn("Checking channel {}",c.channelName);
+				if(c.isAdmin(user)){
+					logger.warn("Found admin right in channel {} for {}",
+							c.channelName,user.getNick());
 					return true;
-			}	
+				}
+//			}	
 		}
 		return false;
 	}
 	
 	public boolean isAdmin(String key,String channel){
+		logger.warn("Checking admin key {} in channel {}",key,channel);
 		for(Channel c:channelList){
 			if(channel.equalsIgnoreCase(c.channelName) ||
 					channel.equalsIgnoreCase(c.listenChannel) ||

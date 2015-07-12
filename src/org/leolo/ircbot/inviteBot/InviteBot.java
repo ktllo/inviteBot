@@ -12,10 +12,13 @@ import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.cap.EnableCapHandler;
 import org.pircbotx.cap.SASLCapHandler;
 import org.pircbotx.exception.IrcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InviteBot{
 	
 	public static final String BOT_VERSION = "0.1-preview";
+	final static Logger logger = LoggerFactory.getLogger(InviteBot.class);
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void main(String [] args) throws IOException{
@@ -31,6 +34,7 @@ public class InviteBot{
 		.setAutoNickChange(true) //Automatically change nick when the current one is in use
 		.setServer(config.getServer(), config.getPort())
 		.addListener(inviter)
+		.setAutoReconnect(true)
 		.addListener(new Console(config,inviter));
 		if(config.isSSL()){
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
@@ -41,7 +45,7 @@ public class InviteBot{
 		try {
 			myBot.startBot();
 		} catch (IrcException e) {
-			// TODO Auto-generated catch block
+			logger.error(e.toString(), e);
 			e.printStackTrace();
 		}
 	}
