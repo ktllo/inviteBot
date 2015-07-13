@@ -2,8 +2,11 @@ package org.leolo.ircbot.inviteBot;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Properties;
 
 import org.leolo.ircbot.inviteBot.util.Glob;
 import org.pircbotx.User;
@@ -20,8 +23,7 @@ class Config {
 		private String reportChannel;
 		private String[] admins;
 		private String adminkey;
-		
-		Channel(java.util.Properties setting, String key) {
+		Channel(Properties setting, String key) {
 			this.channelName = setting.getProperty(key + ".join");
 			this.listenChannel = setting.getProperty(key + ".listen");
 			exemptMask = setting.getProperty(key + ".exemptMask", "")
@@ -87,7 +89,7 @@ class Config {
 	private int port;
 	private String server;
 	private String welcomeMessage;
-
+	private Properties prop;
 	private boolean ssl;
 
 	public Config() throws FileNotFoundException, IOException {
@@ -98,6 +100,7 @@ class Config {
 		channelList = new ArrayList<>();
 		java.util.Properties setting = new java.util.Properties();
 		setting.load(new java.io.FileInputStream(file));
+		prop = setting;
 		server = setting.getProperty("server", "chat.freenode.net");
 		try {
 			port = Integer.parseInt(setting.getProperty("port"));
@@ -260,6 +263,17 @@ class Config {
 			}
 		}
 		return null;
+	}
+	
+	public String writeBackup(){
+		String target = "setting.properties."+Integer.toHexString(prop.hashCode());
+		try {
+			prop.store(new PrintWriter(target), "Backup at "+new Date());
+		} catch (IOException e) {
+			logger.error(e.toString(), e);
+			e.printStackTrace();
+		}
+		return target;
 	}
 	
 }

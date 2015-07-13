@@ -69,7 +69,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 	private String processMessage(String message,User user,PircBotX bot,String source){
 		String rmessage = message;
 		message = message.toLowerCase();
-		logger.debug("Reveived message "+message);
+		logger.debug(USAGE,"Reveived message {} from {}!{}@{}",message,user.getNick(),user.getLogin(),user.getHostmask());
 		if(message.startsWith("ping")){
 			return "pong";
 		}else if(message.startsWith("invite")){
@@ -117,7 +117,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 		}else if(message.startsWith("help")){
 			String [] cmd = message.split(" ");
 			if(cmd.length == 1){
-				return "Available command: ping, invite, info, version, resend";
+				return "Available command: ping, invite, info, version, resend, nick";
 			}else if(cmd[1].equalsIgnoreCase("ping")){
 				return "Check is the bot alive. No parametres";
 			}else if(cmd[1].equalsIgnoreCase("invite")){
@@ -138,6 +138,12 @@ public class Console extends ListenerAdapter<PircBotX> {
 				sb.append("Send the question for the requesting user as message in channel, if used in channel.\n");
 				sb.append("Send in PM if the command is sent via PM");
 				return sb.toString();
+			}else if(cmd[1].equalsIgnoreCase("nick")){
+				StringBuilder sb = new StringBuilder();
+				sb.append(Color.color(ColorName.RED));
+				sb.append("Golbal admin only ").append(Color.defaultColor());
+				sb.append("Change the bot's nickname to the nockname given\n");
+				return sb.toString();
 			}
 		}else if(message.startsWith("nick")){
 			String [] cmd = rmessage.split(" ");
@@ -155,7 +161,12 @@ public class Console extends ListenerAdapter<PircBotX> {
 					return Color.color(ColorName.RED)+"ERROR: Nick change failed";
 				}
 			}else{
+				logger.warn(USAGE, "User {}!{}@{} tried to change bot's nick but unauthorized", user.getNick(),user.getLogin(),user.getHostmask());
 				return Color.color(ColorName.RED)+"ERROR: UNAUTHORIZED";
+			}
+		}else if(message.startsWith("backup")){
+			if(config.isGlobalAdmin(user)){
+				return "backup as "+config.writeBackup();
 			}
 		}
 		return "";
