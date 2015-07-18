@@ -29,7 +29,7 @@ public class InviteBot{
 			config = new Config(args[0]);
 		Inviter inviter = new Inviter(config);
 		Builder b = new Configuration.Builder()
-		.setName(config.getNick()) //Nick of the bot. CHANGE IN YOUR CODE
+		.setName(config.getNick()) //Nick of the bot.
 		.setLogin(config.getIdent()) //Login part of hostmask, eg name:login@host
 		.setAutoNickChange(true) //Automatically change nick when the current one is in use
 		.setServer(config.getServer(), config.getPort())
@@ -38,7 +38,7 @@ public class InviteBot{
 		.addListener(new Console(config,inviter));
 		if(config.isSSL()){
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
-			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.getNick(), config.getPassword()));
+			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.getUsername(), config.getPassword()));
 		}
 		b = b.addCapHandler(new EnableCapHandler("extended-join",false));
 		PircBotX myBot = new PircBotX(b.buildConfiguration());

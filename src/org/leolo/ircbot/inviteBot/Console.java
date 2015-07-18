@@ -36,9 +36,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 					event.respond(line);
 				}
 			}
-		}else if(event.getMessage().toLowerCase().startsWith(event.getBot().getNick().toLowerCase()+" ")){
+		}else if(event.getMessage().toLowerCase().startsWith(event.getBot().getNick().toLowerCase())){
+			String cmd = event.getMessage().substring(event.getBot().getNick().length());
+			logger.debug("msg: {}", cmd);
+			while(cmd.startsWith(" ") || cmd.startsWith(":") || cmd.startsWith(",")){
+				logger.debug("Current msg: {}", cmd);
+				cmd = cmd.substring(1);
+			}
+			logger.debug("msg: {}", cmd);
 			String msg = processMessage(
-					event.getMessage().substring(event.getBot().getNick().length()+1),
+					cmd,
 					event.getUser(),
 					event.getBot(),
 					event.getChannel().getName());
