@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Properties;
 
 import org.leolo.ircbot.inviteBot.util.Glob;
@@ -85,6 +86,7 @@ class Config {
 	private String ident;
 	private ArrayList<Channel> channelList;
 	private String nick;
+	private String username;
 	private String password;
 	private int port;
 	private String server;
@@ -109,6 +111,7 @@ class Config {
 		}
 		password = setting.getProperty("password", "");
 		nick = setting.getProperty("nick", "inviteBot");
+		username = setting.getProperty("user", nick);
 		ident = setting.getProperty("ident", "pircbot");
 		ssl = Boolean.parseBoolean(setting.getProperty("ssl", "false"));
 		String[] keys = setting.getProperty("key", "").split(",");
@@ -161,20 +164,15 @@ class Config {
 	}
 	
 	public String[] getChannelList(){
-		ArrayList<String> list = new ArrayList<>();
-		//TODO: Create list
+		Hashtable<String,String> list = new Hashtable<>();
 		for(Channel c:channelList){
-			if(!list.contains(c.channelName))
-				list.add(c.channelName);
-			if(!list.contains(c.listenChannel))
-				list.add(c.listenChannel);
-			if(!list.contains(c.reportChannel) && c.reportChannel.length() > 0)
-				list.add(c.reportChannel);
+			list.put(c.channelName, c.channelName);
+			list.put(c.listenChannel,c.listenChannel);
+			if( c.reportChannel.length() > 0)
+				list.put(c.reportChannel,c.reportChannel);
 		}
 		String [] result = new String[list.size()];
-		for(int i=0;i<list.size();i++){
-			result[i]=list.get(i);
-		}
+		list.values().toArray(result);
 		return result;
 		
 	}
@@ -266,7 +264,7 @@ class Config {
 	}
 	
 	public String writeBackup(){
-		String target = "setting.properties."+Integer.toHexString(prop.hashCode());
+		String target = "settings.properties."+Integer.toHexString(prop.hashCode());
 		try {
 			prop.store(new PrintWriter(target), "Backup at "+new Date());
 		} catch (IOException e) {
@@ -274,6 +272,14 @@ class Config {
 			e.printStackTrace();
 		}
 		return target;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 	
 }
