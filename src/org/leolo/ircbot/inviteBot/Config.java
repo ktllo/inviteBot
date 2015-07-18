@@ -31,7 +31,7 @@ class Config {
 					.split(",");
 			exemptNick = setting.getProperty(key + ".exempt", "").split(",");
 			this.reportChannel = setting.getProperty(key + ".report","");
-			this.admins = setting.getProperty(key+",admin", "").split(",");
+			this.admins = setting.getProperty(key+".admin", "").split(",");
 			this.adminkey = setting.getProperty(key+".key", null);
 		}
 
