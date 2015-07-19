@@ -2,6 +2,9 @@
 This is a simple IRC bot to ask a simple math question before invite user to
 another channel.
 
+#Compile
+You should able to compile using maven, by `mvn compile package`
+
 #Bot command
 To send command to the bot either
 * Send PM to the bot
