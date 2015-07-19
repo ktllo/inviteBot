@@ -21,6 +21,7 @@ To send command to the bot either
     * `invite <user>[ ...]` To invite listed user listed without answering question
     * `nick <nick>` To change the bot's nick to the given nickname(For GLOBAL admin only)
     * `backup` To backup the configuration file(For GLOBAL admin only)
+
 #Admins
 Global admins are who are IRCOp, `admin` set in the settings.properties.
 Local admins are those set in `<key>.admin` set in settings.properties.
