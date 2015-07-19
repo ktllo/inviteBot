@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
+import java.util.Properties;
+import java.io.InputStream;
 
 import org.pircbotx.Configuration;
 import org.pircbotx.Configuration.Builder;
@@ -14,19 +16,89 @@ import org.pircbotx.cap.SASLCapHandler;
 import org.pircbotx.exception.IrcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.ivartj.args.Help;
+import org.ivartj.args.Lexer;
+import org.ivartj.args.InvalidOptionException;
+import org.ivartj.args.MissingParameterException;
 
 public class InviteBot{
 	
-	public static final String BOT_VERSION = "0.1-preview";
 	final static Logger logger = LoggerFactory.getLogger(InviteBot.class);
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void main(String [] args) throws IOException{
+	private static Properties properties;
+
+	public static String getVersion() {
+		return properties.getProperty("application.version");
+	}
+
+	public static String getName() {
+		return properties.getProperty("application.name");
+	}
+
+	public static Config parseArguments(String args[]) throws Exception{
+		Help help = new Help()
+			.usage("inviteBot [OPTIONS]... [CONFIG]")
+
+			.header("DESCRIPTION")
+			.wrap("  ", ""
+			+	"InviteBot manages invitations to IRC channels. "
+			+	"The configuration is by default "
+			+	"collected from ./settings.properties."
+			)
+
+			.header("OPTIONS")
+			.option("-h, --help", "Prints help message.")
+			.option("--version",  "Prints version.")
+		;
+
+		Lexer lex = new Lexer(args);
+		String configFilename = null;
+
+		while(lex.hasNext()) {
+			String token = lex.next();
+
+			if(lex.isOption(token))
+			switch(token) {
+			case "--help":
+				help.print(System.out);
+				System.exit(0);
+			case "--version":
+				// TODO: Make version reflect version in pom.xml
+				System.out.printf("%s version %s",
+					getName(),
+					getVersion()
+				);
+				System.exit(0);
+			default:
+				throw new InvalidOptionException(token);
+			} else if(configFilename == null)
+				configFilename = token;
+			else
+				throw new InvalidOptionException(token);
+		}
+
 		Config config;
-		if(args.length == 0)
-			config = new Config();
+
+		if(configFilename != null)
+			config = new Config(configFilename);
 		else
-			config = new Config(args[0]);
+			config = new Config();
+
+		return config;
+	}
+
+	public static Properties loadResourceProperties(String resourcePath) throws Exception {
+		InputStream propertyStream = InviteBot.class.getResourceAsStream(resourcePath);
+		if(propertyStream == null)
+			throw new Exception("Failed to load properties from JAR.");
+		Properties properties = new Properties();
+		properties.load(InviteBot.class.getResourceAsStream(resourcePath));
+		return properties;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static void main(String [] args) throws Exception{
+		properties = loadResourceProperties("/application.properties");
+		Config config = parseArguments(args);
 		Inviter inviter = new Inviter(config);
 		Builder b = new Configuration.Builder()
 		.setName(config.getNick()) //Nick of the bot.
