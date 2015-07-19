@@ -13,6 +13,13 @@
 		<url>https://github.com/ktllo/inviteBot</url>
 	</scm>
 
+	<repositories>
+		<repository>
+			<id>ivartj</id>
+			<url>http://maven.ivartj.org/</url>
+		</repository>
+	</repositories>
+
 	<build>
 		<sourceDirectory>${project.basedir}/src</sourceDirectory>
 		<outputDirectory>${project.basedir}/bin</outputDirectory>
