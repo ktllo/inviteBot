@@ -25,16 +25,24 @@ public class InviteBot{
 	
 	final static Logger logger = LoggerFactory.getLogger(InviteBot.class);
 	private static Properties properties;
+	private static String name = null;
+	private static String version = null;
 
 	public static String getVersion() {
-		return properties.getProperty("application.version");
+		if(version != null)
+			return version;
+		version = properties.getProperty("application.version");
+		return version;
 	}
 
 	public static String getName() {
-		return properties.getProperty("application.name");
+		if(name != null)
+			return name;
+		name = properties.getProperty("application.name");
+		return name;
 	}
 
-	public static Config parseArguments(String args[]) throws Exception{
+	private static Config parseArguments(String args[]) throws IOException {
 		Help help = new Help()
 			.usage("inviteBot [OPTIONS]... [CONFIG]")
 
@@ -54,15 +62,16 @@ public class InviteBot{
 		String configFilename = null;
 
 		while(lex.hasNext()) {
+		try {
 			String token = lex.next();
 
 			if(lex.isOption(token))
 			switch(token) {
+			case "-h":
 			case "--help":
 				help.print(System.out);
 				System.exit(0);
 			case "--version":
-				// TODO: Make version reflect version in pom.xml
 				System.out.printf("%s version %s",
 					getName(),
 					getVersion()
@@ -73,8 +82,13 @@ public class InviteBot{
 			} else if(configFilename == null)
 				configFilename = token;
 			else
-				throw new InvalidOptionException(token);
-		}
+				throw new Exception("Unexpected argument '" + token + "'");
+
+		} catch(Exception e) {
+			System.err.println("Error when parsing command-line arguments:");
+			System.err.println("  " + e.getMessage());
+			System.exit(1);
+		} /* try */ }
 
 		Config config;
 
@@ -84,19 +98,20 @@ public class InviteBot{
 			config = new Config();
 
 		return config;
+
 	}
 
-	public static Properties loadResourceProperties(String resourcePath) throws Exception {
+	private static Properties loadResourceProperties(String resourcePath) throws IOException {
 		InputStream propertyStream = InviteBot.class.getResourceAsStream(resourcePath);
 		if(propertyStream == null)
-			throw new Exception("Failed to load properties from JAR.");
+			throw new IOException("Failed to load properties from JAR.");
 		Properties properties = new Properties();
-		properties.load(InviteBot.class.getResourceAsStream(resourcePath));
+		properties.load(propertyStream);
 		return properties;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void main(String [] args) throws Exception{
+	public static void main(String [] args) throws IOException{
 		properties = loadResourceProperties("/application.properties");
 		Config config = parseArguments(args);
 		Inviter inviter = new Inviter(config);
