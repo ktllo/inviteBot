@@ -113,7 +113,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				return sb.toString();
 			//}
 		}else if(message.startsWith("version")){
-			return "v1.0-preview (bowl cut)";
+			return InviteBot.getName() + " version " + InviteBot.getVersion();
 		}else if(message.startsWith("resend")){
 			for(JoinRecord record:inviter.pendingItems){
 				if(record.getNick().equalsIgnoreCase(user.getNick())){
