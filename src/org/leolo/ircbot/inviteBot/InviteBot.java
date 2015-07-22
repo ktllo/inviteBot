@@ -72,7 +72,7 @@ public class InviteBot{
 				help.print(System.out);
 				System.exit(0);
 			case "--version":
-				System.out.printf("%s version %s",
+				System.out.printf("%s version %s\n",
 					getName(),
 					getVersion()
 				);
