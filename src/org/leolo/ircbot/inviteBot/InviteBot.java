@@ -18,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ivartj.args.Help;
 import org.ivartj.args.Lexer;
+import org.ivartj.args.ArgumentException;
 import org.ivartj.args.InvalidOptionException;
-import org.ivartj.args.MissingParameterException;
 
 public class InviteBot{
 	
@@ -82,9 +82,9 @@ public class InviteBot{
 			} else if(configFilename == null)
 				configFilename = token;
 			else
-				throw new Exception("Unexpected argument '" + token + "'");
+				throw new ArgumentException("Unexpected argument '" + token + "'");
 
-		} catch(Exception e) {
+		} catch(ArgumentException e) {
 			System.err.println("Error when parsing command-line arguments:");
 			System.err.println("  " + e.getMessage());
 			System.exit(1);
