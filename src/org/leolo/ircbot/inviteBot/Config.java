@@ -9,6 +9,9 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Properties;
 
+import org.leolo.ircbot.inviteBot.util.PropertyMapper;
+import org.leolo.ircbot.inviteBot.util.Property;
+import org.leolo.ircbot.inviteBot.util.PropertyMapperException;
 import org.leolo.ircbot.inviteBot.util.Glob;
 import org.pircbotx.User;
 import org.slf4j.Logger;
@@ -81,46 +84,55 @@ class Config {
 			return false;
 		}
 	}
-	private String[] admins;
-	private String escape;
+
+	@Property( description = "IRC server to connect to.", required = true )
+	private String server;
+
+	@Property( description = "Port to connect to.", defaultValue = "6667" )
+	private int port = 6667;
+
+	@Property( description = "Whether to use secure TLS/SSL connection.", defaultValue = "false" )
+	private boolean ssl = false;
+
+	@Property( description = "Password which bot will use to authenticate itself on IRC network." )
+	private String password = "";
+
+	@Property( description = "Comma-separated list of admins who can control the bot." )
+	private String[] admins = {};
+
+	@Property( description = "Escape prefix used for commands given to bot.", defaultValue = "!" )
+	private String escape = "!";
+
+	@Property( description = "IRC nickname used by the bot.", defaultValue = "inviteBot" )
+	private String nick = "inviteBot";
+
+	@Property( description = "Login name seen in IRC beside hostname.", defaultValue = "inviteBot" )
+	private String username = "inviteBot";
+
 	private String ident;
 	private ArrayList<Channel> channelList;
-	private String nick;
-	private String username;
-	private String password;
-	private int port;
-	private String server;
+
+
 	private String welcomeMessage;
 	private Properties prop;
-	private boolean ssl;
 
-	public Config() throws FileNotFoundException, IOException {
+	public Config() throws FileNotFoundException, IOException, PropertyMapperException {
 		this("settings.properties");
 	}
 
-	public Config(String file) throws FileNotFoundException, IOException {
+	public Config(String file) throws FileNotFoundException, IOException, PropertyMapperException {
 		channelList = new ArrayList<>();
 		java.util.Properties setting = new java.util.Properties();
 		setting.load(new java.io.FileInputStream(file));
+		PropertyMapper mapper = new PropertyMapper(this);
+		mapper.map(prop);
 		prop = setting;
-		server = setting.getProperty("server", "chat.freenode.net");
-		try {
-			port = Integer.parseInt(setting.getProperty("port"));
-		} catch (NumberFormatException nfe) {
-			port = 6667;
-		}
-		password = setting.getProperty("password", "");
-		nick = setting.getProperty("nick", "inviteBot");
-		username = setting.getProperty("user", nick);
 		ident = setting.getProperty("ident", "pircbot");
-		ssl = Boolean.parseBoolean(setting.getProperty("ssl", "false"));
 		String[] keys = setting.getProperty("key", "").split(",");
 		for (String s : keys) {
 			channelList.add(new Channel(setting, s));
 		}
-		escape = setting.getProperty("escape", "!");
 		welcomeMessage = setting.getProperty("welcome", "Welcome to %t!");
-		admins = setting.getProperty("admin", "").split(",");
 	}
 
 	public String[] getAdmins() {
@@ -281,5 +293,13 @@ class Config {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-	
+
+	// For use in getSettings()
+	private Config(boolean inert) { }
+
+	public static Property[] getSettings() {
+		Config config = new Config(true);
+		PropertyMapper mapper = new PropertyMapper(config);
+		return mapper.getProperties();
+	}
 }

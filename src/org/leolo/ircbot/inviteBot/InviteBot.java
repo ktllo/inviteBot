@@ -20,6 +20,9 @@ import org.ivartj.args.Help;
 import org.ivartj.args.Lexer;
 import org.ivartj.args.ArgumentException;
 import org.ivartj.args.InvalidOptionException;
+import org.leolo.ircbot.inviteBot.util.PropertyMapperException;
+import org.leolo.ircbot.inviteBot.util.Property;
+import org.leolo.ircbot.inviteBot.util.PropertyMapper;
 
 public class InviteBot{
 	
@@ -42,22 +45,51 @@ public class InviteBot{
 		return name;
 	}
 
-	private static Config parseArguments(String args[]) throws IOException {
+	private static Help getHelpMessage() {
 		Help help = new Help()
 			.usage("inviteBot [OPTIONS]... [CONFIG]")
 
 			.header("DESCRIPTION")
 			.wrap("  ", ""
 			+	"InviteBot manages invitations to IRC channels. "
-			+	"The configuration is by default "
-			+	"collected from ./settings.properties."
 			)
 
 			.header("OPTIONS")
+			.wrap("  ", ""
+			+	"The following are command-line options. "
+			)
 			.option("-h, --help", "Prints help message.")
 			.option("--version",  "Prints version.")
 		;
 
+		help.header("CONFIGURATION")
+			.wrap("  ", ""
+			+	"The configuration is by default "
+			+	"collected from ./settings.properties. "
+			+	"Configuration settings are:"
+			)
+		;
+
+		Property settings[] = Config.getSettings();
+		for(int i = 0; i < settings.length; i++) {
+			Property setting = settings[i];
+			String desc = setting.description();
+			if(setting.required())
+				desc += "\nRequired.";
+			if(!setting.defaultValue().equals(""))
+				desc += "\nDefault: \"" + setting.defaultValue() + "\"";
+			help.option(setting.toString() + (setting.required() ? "*" : ""), desc);
+		}
+
+		help.wrap("  ", ""
+		+	"Settings marked with * are required."
+		);
+
+		return help;
+	}
+
+	private static Config parseArguments(String args[]) throws IOException, PropertyMapperException {
+		Help help = getHelpMessage();
 		Lexer lex = new Lexer(args);
 		String configFilename = null;
 
@@ -111,7 +143,7 @@ public class InviteBot{
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void main(String [] args) throws IOException{
+	public static void main(String [] args) throws IOException, PropertyMapperException{
 		properties = loadResourceProperties("/application.properties");
 		Config config = parseArguments(args);
 		Inviter inviter = new Inviter(config);

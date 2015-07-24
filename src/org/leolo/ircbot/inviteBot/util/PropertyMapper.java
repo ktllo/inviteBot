@@ -130,11 +130,16 @@ public class PropertyMapper
 		}
 
 		public String description() {
-			return property.description();
+			String desc = property.description();
+			return desc;
 		}
 
 		public boolean required() {
 			return property.required();
+		}
+
+		public String defaultValue() {
+			return property.defaultValue();
 		}
 
 		public Class<? extends Annotation> annotationType() {

@@ -9,7 +9,8 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Property {
 	public String description();
-	public boolean required() default true;
+	public String defaultValue() default "";
+	public boolean required() default false;
 }
 
 
