@@ -50,27 +50,40 @@ public class InviteBot{
 			.usage("inviteBot [OPTIONS]... [CONFIG]")
 
 			.header("DESCRIPTION")
-			.wrap("  ", ""
-			+	"InviteBot manages invitations to IRC channels. "
-			)
+			.pg("  InviteBot manages invitations to IRC channels. ")
 
 			.header("OPTIONS")
-			.wrap("  ", ""
-			+	"The following are command-line options. "
-			)
+			.pg("  The following are command-line options. ")
+
 			.option("-h, --help", "Prints help message.")
 			.option("--version",  "Prints version.")
-		;
 
-		help.header("CONFIGURATION")
-			.wrap("  ", ""
-			+	"The configuration is by default "
-			+	"collected from ./settings.properties. "
-			+	"Configuration settings are:"
-			)
-		;
+			.header("GLOBAL SETTINGS")
+			.pg("  Settings are inn the form:")
 
-		Property settings[] = Config.getSettings();
+			.pg("    field=value")
+
+			.pg("  "
+			+	"The configuration is by default collected from "
+			+	"./settings.properties."
+			);
+
+		addSettingsToHelp(help, Config.getGlobalSettings());
+
+		help.header("CHANNEL SETTINGS")
+			.pg("  "
+			+	"The following are channel-specific settings. "
+			+	"Channel-specific seetings are prefixed with the keys "
+			+	"given in the global 'key' setting."
+			);
+
+		addSettingsToHelp(help, Config.getChannelSettings());
+
+		return help;
+	}
+
+	private static void addSettingsToHelp(Help help, Property settings[]) {
+
 		for(int i = 0; i < settings.length; i++) {
 			Property setting = settings[i];
 			String desc = setting.description();
@@ -81,11 +94,9 @@ public class InviteBot{
 			help.option(setting.toString() + (setting.required() ? "*" : ""), desc);
 		}
 
-		help.wrap("  ", ""
+		help.pg("  "
 		+	"Settings marked with * are required."
 		);
-
-		return help;
 	}
 
 	private static Config parseArguments(String args[]) throws IOException, PropertyMapperException {

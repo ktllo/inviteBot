@@ -20,22 +20,32 @@ import org.slf4j.LoggerFactory;
 class Config {
 	final Logger logger = LoggerFactory.getLogger(Config.class);
 	class Channel {
+		@Property( name = ".join", description = "IRC channel to join.", required = true )
 		private String channelName;
+
+		@Property( name = ".exemptMask", description = "TO BE DOCUMENTED." )
 		private String[] exemptMask;
+
+		@Property( name = ".exempt", description = "TO BE DOCUMENTED." )
 		private String[] exemptNick;
+
+		@Property( name = ".listen", description = "TO BE DOCUMENTED." )
 		private String listenChannel;
+
+		@Property( name = ".report", description = "TO BE DOCUMENTED." )
 		private String reportChannel;
+
+		@Property( name = ".admin", description = "TO BE DOCUMENTED." )
 		private String[] admins;
+
+		@Property( name = ".key", description = "TO BE DOCUMENTED." )
 		private String adminkey;
-		Channel(Properties setting, String key) {
-			this.channelName = setting.getProperty(key + ".join");
-			this.listenChannel = setting.getProperty(key + ".listen");
-			exemptMask = setting.getProperty(key + ".exemptMask", "")
-					.split(",");
-			exemptNick = setting.getProperty(key + ".exempt", "").split(",");
-			this.reportChannel = setting.getProperty(key + ".report","");
-			this.admins = setting.getProperty(key+".admin", "").split(",");
-			this.adminkey = setting.getProperty(key+".key", null);
+
+		Channel(Properties setting, String key) throws PropertyMapperException {
+			PropertyMapper mapper = new PropertyMapper(this);
+			mapper.fillDefaults();
+			mapper.map(key, setting);
+			mapper.checkRequired();
 		}
 
 		public String getChannelName() {
@@ -89,31 +99,37 @@ class Config {
 	private String server;
 
 	@Property( description = "Port to connect to.", defaultValue = "6667" )
-	private int port = 6667;
+	private int port;
 
 	@Property( description = "Whether to use secure TLS/SSL connection.", defaultValue = "false" )
-	private boolean ssl = false;
+	private boolean ssl;
 
 	@Property( description = "Password which bot will use to authenticate itself on IRC network." )
-	private String password = "";
+	private String password;
 
-	@Property( description = "Comma-separated list of admins who can control the bot." )
-	private String[] admins = {};
+	@Property( name = "admin", description = "Comma-separated list of admins who can control the bot." )
+	private String[] admins;
 
 	@Property( description = "Escape prefix used for commands given to bot.", defaultValue = "!" )
-	private String escape = "!";
+	private String escape;
 
 	@Property( description = "IRC nickname used by the bot.", defaultValue = "inviteBot" )
-	private String nick = "inviteBot";
+	private String nick;
 
 	@Property( description = "Login name seen in IRC beside hostname.", defaultValue = "inviteBot" )
-	private String username = "inviteBot";
+	private String username;
 
+	@Property( name = "key", description = "Comma-separated list of prefixes used to configure channels.", defaultValue = "" )
+	private String channelStringList[];
+
+	@Property( description = "IRC profile identity field.", defaultValue = "pircbot" )
 	private String ident;
+
+	@Property( name = "welcome", description = "Welcome message.", defaultValue = "Welcome to %t!" )
+	private String welcomeMessage;
+
 	private ArrayList<Channel> channelList;
 
-
-	private String welcomeMessage;
 	private Properties prop;
 
 	public Config() throws FileNotFoundException, IOException, PropertyMapperException {
@@ -122,17 +138,16 @@ class Config {
 
 	public Config(String file) throws FileNotFoundException, IOException, PropertyMapperException {
 		channelList = new ArrayList<>();
-		java.util.Properties setting = new java.util.Properties();
-		setting.load(new java.io.FileInputStream(file));
+		prop = new java.util.Properties();
+		prop.load(new java.io.FileInputStream(file));
 		PropertyMapper mapper = new PropertyMapper(this);
+		mapper.fillDefaults();
 		mapper.map(prop);
-		prop = setting;
-		ident = setting.getProperty("ident", "pircbot");
-		String[] keys = setting.getProperty("key", "").split(",");
+		mapper.checkRequired();
+		String[] keys = channelStringList;
 		for (String s : keys) {
-			channelList.add(new Channel(setting, s));
+			channelList.add(new Channel(prop, s));
 		}
-		welcomeMessage = setting.getProperty("welcome", "Welcome to %t!");
 	}
 
 	public String[] getAdmins() {
@@ -294,12 +309,11 @@ class Config {
 		this.username = username;
 	}
 
-	// For use in getSettings()
-	private Config(boolean inert) { }
+	public static Property[] getGlobalSettings() {
+		return PropertyMapper.getProperties(Config.class);
+	}
 
-	public static Property[] getSettings() {
-		Config config = new Config(true);
-		PropertyMapper mapper = new PropertyMapper(config);
-		return mapper.getProperties();
+	public static Property[] getChannelSettings() {
+		return PropertyMapper.getProperties(Channel.class);
 	}
 }

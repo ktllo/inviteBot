@@ -8,12 +8,10 @@ import java.util.ArrayList;
 
 public class PropertyMapper
 {
-	Properties properties;
 	Object object;
 	Class objClass;
 
 	public PropertyMapper(Object object) {
-		this.properties = properties;
 		this.object = object;
 		objClass = object.getClass();
 	}
@@ -21,25 +19,64 @@ public class PropertyMapper
 	public void map(Properties properties)
 		throws PropertyMapperException
 	{
+		map("", properties);
+	}
+
+	public void fillDefaults()
+		throws PropertyMapperException {
+		Field objFields[] = objClass.getDeclaredFields();
+		for(int i = 0; i < objFields.length; i++) {
+			Field field = objFields[i];
+			field.setAccessible(true);
+			Property property = field.getAnnotation(Property.class);
+			if(property == null)
+				continue;
+			setField(field, property.defaultValue());
+			field.setAccessible(false);
+		}
+	}
+
+	public void map(String prefix, Properties properties)
+		throws PropertyMapperException
+	{
 		// Load properties into object
-		Iterator<String> propertyFields = properties.stringPropertyNames().iterator();
-		while(propertyFields.hasNext()) {
-			String propertyField = propertyFields.next();
-			setField(propertyField, properties.getProperty(propertyField));
+		Field objFields[] = objClass.getDeclaredFields();
+		for(int i = 0; i < objFields.length; i++) {
+			Field field = objFields[i];
+			field.setAccessible(true);
+			if(isFieldProperty(field) == false)
+				continue;
+			String propertyName = prefix + getFieldPropertyName(field);
+			String propertyValue;
+			assert(properties != null);
+			assert(propertyName != null);
+			propertyValue = properties.getProperty(propertyName);
+			if(propertyValue == null)
+				continue;
+			setField(field, propertyValue);
+			field.setAccessible(false);
 		}
 
 	}
 
-	private void setField(String propertyField, String propertyValue)
+	private static boolean isFieldProperty(Field field) {
+		Property annotation = (Property)field.getAnnotation(Property.class);
+		if(annotation == null)
+			return false;
+		return true;
+	}
+
+	private static String getFieldPropertyName(Field field) {
+		Property annotation = (Property)field.getAnnotation(Property.class);
+		if(annotation.name().equals(""))
+			return field.getName();
+		return annotation.name();
+	}
+
+	private void setField(Field field, String propertyValue)
 		throws PropertyMapperException {
 	try {
 
-		Field field = objClass.getDeclaredField(propertyField);
-
-		Property annotation = (Property)field.getAnnotation(Property.class);
-		if(annotation == null)
-			return;
-	
 		Class fieldClass = field.getType();
 
 		if(fieldClass.equals(String.class))
@@ -54,23 +91,23 @@ public class PropertyMapper
 			throw new PropertyMapperException(field.getType() + " fields not implemented yet");
 
 	} catch(NumberFormatException e) {
-		throw new PropertyMapperException("'" + propertyValue + "' in the '" + propertyField + "' field is not a valid number");
+		throw new PropertyMapperException("'" + propertyValue + "' in the '" + getFieldPropertyName(field) + "' field is not a valid number");
 	} catch(IllegalAccessException e) {
-		panicSecurity();
+		throw new PropertyMapperException("IllegalAccessException " + e.getMessage());
 	} catch(SecurityException e) {
 		panicSecurity();
-	} catch(NoSuchFieldException e) {
-		// In order to allow for flexibility, we ignore this exception
-		// throw new PropertyMapperException("No such field, '" + propertyField + "'");
-		return;
 	} /* try */ }
 
 	public void checkRequired()
 		throws PropertyMapperException
 	{
 		Field objFields[] = objClass.getDeclaredFields();
-		for(int i = 0; i < objFields.length; i++)
-			checkRequiredProperty(objFields[i]);
+		for(int i = 0; i < objFields.length; i++) {
+			Field field = objFields[i];
+			field.setAccessible(true);
+			checkRequiredProperty(field);
+			field.setAccessible(false);
+		}
 	}
 
 	private void checkRequiredProperty(Field field)
@@ -99,17 +136,17 @@ public class PropertyMapper
 		throw new PropertyMapperException("PropertyMapper doesn't work in this security context");
 	}
 
-	public Property[] getProperties() {
+	public static Property[] getProperties(Class clazz) {
 		ArrayList<Property> retval = new ArrayList<Property>();
 		Property array[] = new Property[0];
 
-		Field objFields[] = objClass.getDeclaredFields();
+		Field objFields[] = clazz.getDeclaredFields();
 		for(int i = 0; i < objFields.length; i++) {
 			Field field = objFields[i];
 			Property annotation = (Property)field.getAnnotation(Property.class);
 			if(annotation == null)
 				continue;
-			retval.add(new PropertyImpl(field.getName(), annotation));
+			retval.add(new PropertyImpl(getFieldPropertyName(field), annotation));
 		}
 
 		return retval.toArray(array);
@@ -126,6 +163,10 @@ public class PropertyMapper
 
 		@Override
 		public String toString() {
+			return name;
+		}
+
+		public String name() {
 			return name;
 		}
 
