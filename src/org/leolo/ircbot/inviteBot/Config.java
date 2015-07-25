@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Properties;
 
 import org.leolo.ircbot.inviteBot.util.PropertyMapper;
@@ -26,9 +28,6 @@ class Config {
 		@Property( name = ".exemptMask", description = "Comma-separated list of mask that is exempt from remove" )
 		private ArrayList<String> exemptMask;
 
-		@Property( name = ".exempt", description = "Comma-separated list of nick that is exempt from remov" )
-		private ArrayList<String> exemptNick;
-
 		@Property( name = ".listen", description = "Where the bot will listen to incoming join." )
 		private String listenChannel;
 
@@ -41,7 +40,9 @@ class Config {
 		@Property( name = ".key", description = "Unused property" )
 		@Deprecated
 		private String adminkey;
-
+		
+		private String key;
+		
 		Channel(Properties setting, String key) throws PropertyMapperException {
 			PropertyMapper mapper = new PropertyMapper(this);
 			mapper.fillDefaults();
@@ -53,12 +54,8 @@ class Config {
 			return channelName;
 		}
 
-		public ArrayList<String> getExemptMask() {
+		public Collection<String> getExemptMask() {
 			return exemptMask;
-		}
-
-		public ArrayList<String> getExemptNick() {
-			return exemptNick;
 		}
 
 		public String getListenChannel() {
@@ -83,16 +80,48 @@ class Config {
 		}
 		
 		public boolean isExempted(User user){
-			for(String nick:exemptNick){
-				if(user.getNick().equalsIgnoreCase(nick))
-					return true;
-			}
 			String hostmask = user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask();
 			for(String mask:exemptMask){
 				if(Glob.match(mask, hostmask))
 					return true;
 			}
 			return false;
+		}
+		
+		public boolean removeAdmin(String mask){
+			Iterator<String> iAdmin = admins.iterator();
+			while(iAdmin.hasNext()){
+				String admin = iAdmin.next();
+				if(admin.equalsIgnoreCase(mask)){
+					iAdmin.remove();
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		public void addAdmin(String mask){
+			admins.add(mask);
+		}
+		
+		public boolean removeExempt(String mask){
+			Iterator<String> iExemptMask = exemptMask.iterator();
+			while(iExemptMask.hasNext()){
+				String admin = iExemptMask.next();
+				if(admin.equalsIgnoreCase(mask)){
+					iExemptMask.remove();
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		public void addExempt(String mask){
+			exemptMask.add(mask);
+		}
+		
+		public String getKey(){
+			return key;
 		}
 	}
 
@@ -147,7 +176,9 @@ class Config {
 		mapper.checkRequired();
 		String[] keys = channelStringList;
 		for (String s : keys) {
-			channelList.add(new Channel(prop, s));
+			Channel c = new Channel(prop, s);
+			c.key = s;
+			channelList.add(c);
 		}
 	}
 
@@ -239,16 +270,16 @@ class Config {
 		if(isGlobalAdmin(user))
 			return true;
 		for(Channel c:channelList){
-//			if(channel.equalsIgnoreCase(c.channelName) ||
-//					channel.equalsIgnoreCase(c.listenChannel) ||
-//					channel.equalsIgnoreCase(c.reportChannel)){
+			if(channel.equalsIgnoreCase(c.channelName) ||
+					channel.equalsIgnoreCase(c.listenChannel) ||
+					channel.equalsIgnoreCase(c.reportChannel)){
 				logger.warn("Checking channel {}",c.channelName);
 				if(c.isAdmin(user)){
 					logger.warn("Found admin right in channel {} for {}",
 							c.channelName,user.getNick());
 					return true;
 				}
-//			}	
+			}	
 		}
 		return false;
 	}
@@ -310,6 +341,17 @@ class Config {
 		return target;
 	}
 
+	public String write(){
+		String target = "settings.properties";
+		try {
+			prop.store(new PrintWriter(target), "Backup at "+new Date());
+		} catch (IOException e) {
+			logger.error(e.toString(), e);
+			e.printStackTrace();
+		}
+		return target;
+	}
+	
 	public String getUsername() {
 		return username;
 	}

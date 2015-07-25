@@ -215,6 +215,66 @@ public class Console extends ListenerAdapter<PircBotX> {
 	}
 	
 	private String processMessage(String message,User user,PircBotX bot){
+		if(config.isGlobalAdmin(user)){
+			String lmsg = message.toLowerCase();
+			String [] args = lmsg.split(" ");
+			String rmsg = null;
+			if(args[0].equals("addadmin") || args[0].equals("removeadmin") || 
+					args[0].equals("addexempt") || args[0].equals("removeexempt"))
+			if(args.length != 3){
+				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRE";
+			}
+			String backupName = config.writeBackup();
+			switch(args[0]){
+			case "addadmin":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.addAdmin(args[2]);
+						logger.info(USAGE,"{} added to admin list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " added to admin list";
+					}
+				}
+				break;
+			case "removeadmin":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.removeAdmin(args[2]);
+						logger.info(USAGE,"{} removed from admin list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " added to admin list";
+					}
+				}
+				break;
+			case "addexempt":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.addExempt(args[2]);
+						logger.info(USAGE,"{} added to exempt list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " added to admin list";
+					}
+				}
+				break;
+			case "removexempt":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.removeExempt(args[2]);
+						logger.info(USAGE,"{} removed from exempt list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " added to admin list";
+					}
+				}
+				break;
+			default:
+				return "";
+			}
+			if(rmsg==null){
+				return "Undefined key";
+			}
+			config.write();
+			return "Old config backed up as"+backupName+"\n"+rmsg;
+		}
 		return "";
 	}
 	
