@@ -208,6 +208,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 						sb.append(", ");
 					}
 				}
+				return sb.toString();
 			}
 			return "I don't reconize you";
 		}
