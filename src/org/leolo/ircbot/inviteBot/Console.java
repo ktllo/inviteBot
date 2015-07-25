@@ -242,7 +242,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 						c.removeAdmin(args[2]);
 						logger.info(USAGE,"{} removed from admin list of {} by {}!{}@{} ",
 								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
-						rmsg = args[2] + " added to admin list";
+						rmsg = args[2] + " removed from admin list";
 					}
 				}
 				break;
@@ -252,17 +252,17 @@ public class Console extends ListenerAdapter<PircBotX> {
 						c.addExempt(args[2]);
 						logger.info(USAGE,"{} added to exempt list of {} by {}!{}@{} ",
 								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
-						rmsg = args[2] + " added to admin list";
+						rmsg = args[2] + " added to exempt list";
 					}
 				}
 				break;
-			case "removexempt":
+			case "removeexempt":
 				for(Channel c:config.getChannels()){
 					if(args[1].equals(c.getKey())){
 						c.removeExempt(args[2]);
 						logger.info(USAGE,"{} removed from exempt list of {} by {}!{}@{} ",
 								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
-						rmsg = args[2] + " added to admin list";
+						rmsg = args[2] + " removed from list";
 					}
 				}
 				break;

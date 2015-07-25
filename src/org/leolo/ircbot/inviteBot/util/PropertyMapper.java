@@ -87,7 +87,13 @@ public class PropertyMapper
 			field.setInt(object, Integer.parseInt(propertyValue));
 		else if(fieldClass.equals(String[].class))
 			field.set(object, propertyValue.split(","));
-		else
+		else if(fieldClass.equals(ArrayList.class)){
+			String [] array = propertyValue.split(",");
+			ArrayList<String> list = new ArrayList<>(array.length);
+			for(String s:array)
+				list.add(s);
+			field.set(object, list);
+		}else
 			throw new PropertyMapperException(field.getType() + " fields not implemented yet");
 
 	} catch(NumberFormatException e) {

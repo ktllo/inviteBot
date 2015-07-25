@@ -157,6 +157,8 @@ public class InviteBot{
 	public static void main(String [] args) throws IOException, PropertyMapperException{
 		properties = loadResourceProperties("/application.properties");
 		Config config = parseArguments(args);
+//		System.out.println(config);
+//		System.exit(0);
 		Inviter inviter = new Inviter(config);
 		Builder b = new Configuration.Builder()
 		.setName(config.getNick()) //Nick of the bot.

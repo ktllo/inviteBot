@@ -94,6 +94,7 @@ class Config {
 				String admin = iAdmin.next();
 				if(admin.equalsIgnoreCase(mask)){
 					iAdmin.remove();
+					updateAdmin();
 					return true;
 				}
 			}
@@ -102,6 +103,7 @@ class Config {
 		
 		public void addAdmin(String mask){
 			admins.add(mask);
+			updateAdmin();
 		}
 		
 		public boolean removeExempt(String mask){
@@ -110,6 +112,7 @@ class Config {
 				String admin = iExemptMask.next();
 				if(admin.equalsIgnoreCase(mask)){
 					iExemptMask.remove();
+					updateExempt();
 					return true;
 				}
 			}
@@ -118,10 +121,34 @@ class Config {
 		
 		public void addExempt(String mask){
 			exemptMask.add(mask);
+			updateExempt();
 		}
 		
 		public String getKey(){
 			return key;
+		}
+		
+
+		private void updateAdmin(){
+			StringBuilder sb = new StringBuilder();
+			Iterator<String> iAdmins = admins.iterator();
+			while(iAdmins.hasNext()){
+				sb.append(iAdmins.next());
+				if(iAdmins.hasNext())
+					sb.append(",");
+			}
+			prop.setProperty(key+".admin", sb.toString());
+		}
+		
+		private void updateExempt(){
+			StringBuilder sb = new StringBuilder();
+			Iterator<String> iExempt = exemptMask.iterator();
+			while(iExempt.hasNext()){
+				sb.append(iExempt.next());
+				if(iExempt.hasNext())
+					sb.append(",");
+			}
+			prop.setProperty(key+".exemptMask", sb.toString());
 		}
 	}
 
@@ -146,7 +173,7 @@ class Config {
 	@Property( description = "IRC nickname used by the bot.", defaultValue = "inviteBot" )
 	private String nick;
 
-	@Property( description = "Login name seen in IRC beside hostname.", defaultValue = "inviteBot" )
+	@Property( description = "Login name seen in IRC beside nickname.", defaultValue = "" )
 	private String username;
 
 	@Property( name = "key", description = "Comma-separated list of prefixes used to configure channels.", defaultValue = "" )
@@ -174,6 +201,9 @@ class Config {
 		mapper.fillDefaults();
 		mapper.map(prop);
 		mapper.checkRequired();
+		if(username.length()==0){
+			username = nick;
+		}
 		String[] keys = channelStringList;
 		for (String s : keys) {
 			Channel c = new Channel(prop, s);
@@ -366,5 +396,42 @@ class Config {
 
 	public static Property[] getChannelSettings() {
 		return PropertyMapper.getProperties(Channel.class);
+	}
+
+	@Override
+	public String toString() {
+		final int maxLen = 10;
+		StringBuilder builder = new StringBuilder();
+		builder.append("Config [logger=");
+		builder.append(logger);
+		builder.append(", server=");
+		builder.append(server);
+		builder.append(", port=");
+		builder.append(port);
+		builder.append(", ssl=");
+		builder.append(ssl);
+		builder.append(", password=");
+		builder.append(password);
+		builder.append(", admins=");
+		builder.append(admins);
+		builder.append(", escape=");
+		builder.append(escape);
+		builder.append(", nick=");
+		builder.append(nick);
+		builder.append(", username=");
+		builder.append(username);
+		builder.append(", channelStringList=");
+		builder.append(channelStringList);
+		builder.append(", ident=");
+		builder.append(ident);
+		builder.append(", welcomeMessage=");
+		builder.append(welcomeMessage);
+		builder.append(", channelList=");
+		builder.append(channelList != null ? channelList.subList(0,
+				Math.min(channelList.size(), maxLen)) : null);
+		builder.append(", prop=");
+		builder.append(prop);
+		builder.append("]");
+		return builder.toString();
 	}
 }
