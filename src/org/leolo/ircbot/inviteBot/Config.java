@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
+import java.io.FileReader;
+import java.io.Reader;
 
 import org.leolo.ircbot.inviteBot.util.PropertyMapper;
 import org.leolo.ircbot.inviteBot.util.Property;
@@ -196,10 +198,14 @@ class Config {
 	}
 
 	public Config(String file) throws FileNotFoundException, IOException, PropertyMapperException {
+		this(new FileReader(file), file);
+	}
+
+	protected Config(Reader input, String file) throws IOException, PropertyMapperException {
 		configFileLocation = file;
 		channelList = new ArrayList<>();
 		prop = new java.util.Properties();
-		prop.load(new java.io.FileInputStream(configFileLocation));
+		prop.load(input);
 		PropertyMapper mapper = new PropertyMapper(this);
 		mapper.fillDefaults();
 		mapper.map(prop);
