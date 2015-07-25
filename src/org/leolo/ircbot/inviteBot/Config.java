@@ -264,10 +264,9 @@ class Config {
 	public String[] getChannelList(){
 		Hashtable<String,String> list = new Hashtable<>();
 		for(Channel c:channelList){
-			list.put(c.channelName, c.channelName);
-			list.put(c.listenChannel,c.listenChannel);
-			if( c.reportChannel.length() > 0)
-				list.put(c.reportChannel,c.reportChannel);
+			for(String channelName : new String[]{c.channelName, c.listenChannel, c.reportChannel})
+				if(channelName.length() != 0)
+					list.put(channelName, channelName);
 		}
 		String [] result = new String[list.size()];
 		list.values().toArray(result);
