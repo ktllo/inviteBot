@@ -1,5 +1,9 @@
 package org.leolo.ircbot.inviteBot;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.leolo.ircbot.inviteBot.Config.Channel;
 import org.leolo.ircbot.inviteBot.util.Color;
 import org.leolo.ircbot.inviteBot.util.ColorName;
 import org.pircbotx.PircBotX;
@@ -63,6 +67,11 @@ public class Console extends ListenerAdapter<PircBotX> {
 				event.getUser(),
 				event.getBot(),
 				event.getUser().getNick());
+		if(msg.length()==0 && config.isGlobalAdmin(event.getUser())){
+			msg = processMessage(event.getMessage(),
+					event.getUser(),
+					event.getBot());
+		}
 		if(msg.length()>0){
 			String [] lines = msg.split("\n");
 			for(String line:lines){
@@ -92,7 +101,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				}
 			}
 		}else if(message.startsWith("info")){
-			//if(config.isGlobalAdmin(user) || config.isListenChannel(source)){
+			if(config.isAdmin(user)){
 				long uptime = System.currentTimeMillis() - inviter.START;
 				int upD = (int)(uptime/86400000);
 				int upH = ((int)(uptime/3600000))%24;
@@ -111,7 +120,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 					sb.append(upS).append(" seconds ");
 				
 				return sb.toString();
-			//}
+			}
 		}else if(message.startsWith("version")){
 			return InviteBot.getName() + " version " + InviteBot.getVersion();
 		}else if(message.startsWith("resend")){
@@ -151,6 +160,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 				sb.append("Global admin only ").append(Color.defaultColor());
 				sb.append("Change the bot's nickname to the nockname given\n");
 				return sb.toString();
+			}else if(cmd[1].equalsIgnoreCase("whoami")){
+				return "Checks is the bot reconize you";
 			}
 		}else if(message.startsWith("nick")){
 			String [] cmd = rmessage.split(" ");
@@ -175,8 +186,96 @@ public class Console extends ListenerAdapter<PircBotX> {
 			if(config.isGlobalAdmin(user)){
 				return "backup as "+config.writeBackup();
 			}
+		}else if(message.startsWith("moo")){
+			return "moooo";
+		}else if(message.startsWith("whoami")){
+			if(config.isGlobalAdmin(user)){
+				return "Global Admin";
+			}
+			ArrayList<String> ch = new ArrayList<>();
+			for(Channel c : config.getChannels()){
+				if(c.isAdmin(user)){
+					ch.add(c.getChannelName());
+				}
+			}
+			if(ch.size() > 0){
+				Iterator<String> ich = ch.iterator();
+				StringBuilder sb = new StringBuilder();
+				sb.append("Local admin of: ");
+				while(ich.hasNext()){
+					sb.append(ich.next());
+					if(ich.hasNext()){
+						sb.append(", ");
+					}
+				}
+			}
+			return "I don't reconize you";
 		}
 		return "";
 	}
-
+	
+	private String processMessage(String message,User user,PircBotX bot){
+		if(config.isGlobalAdmin(user)){
+			String lmsg = message.toLowerCase();
+			String [] args = lmsg.split(" ");
+			String rmsg = null;
+			if(args[0].equals("addadmin") || args[0].equals("removeadmin") || 
+					args[0].equals("addexempt") || args[0].equals("removeexempt"))
+			if(args.length != 3){
+				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRE";
+			}
+			String backupName = config.writeBackup();
+			switch(args[0]){
+			case "addadmin":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.addAdmin(args[2]);
+						logger.info(USAGE,"{} added to admin list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " added to admin list";
+					}
+				}
+				break;
+			case "removeadmin":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.removeAdmin(args[2]);
+						logger.info(USAGE,"{} removed from admin list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " removed from admin list";
+					}
+				}
+				break;
+			case "addexempt":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.addExempt(args[2]);
+						logger.info(USAGE,"{} added to exempt list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " added to exempt list";
+					}
+				}
+				break;
+			case "removeexempt":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.removeExempt(args[2]);
+						logger.info(USAGE,"{} removed from exempt list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " removed from list";
+					}
+				}
+				break;
+			default:
+				return "";
+			}
+			if(rmsg==null){
+				return "Undefined key";
+			}
+			config.write();
+			return "Old config backed up as"+backupName+"\n"+rmsg;
+		}
+		return "";
+	}
+	
 }
