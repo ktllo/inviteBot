@@ -18,8 +18,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ivartj.args.Help;
 import org.ivartj.args.Lexer;
+import org.ivartj.args.ArgumentException;
 import org.ivartj.args.InvalidOptionException;
-import org.ivartj.args.MissingParameterException;
+import org.leolo.ircbot.inviteBot.util.PropertyMapperException;
+import org.leolo.ircbot.inviteBot.util.Property;
+import org.leolo.ircbot.inviteBot.util.PropertyMapper;
 
 public class InviteBot{
 	
@@ -42,22 +45,62 @@ public class InviteBot{
 		return name;
 	}
 
-	private static Config parseArguments(String args[]) throws IOException {
+	private static Help getHelpMessage() {
 		Help help = new Help()
 			.usage("inviteBot [OPTIONS]... [CONFIG]")
 
 			.header("DESCRIPTION")
-			.wrap("  ", ""
-			+	"InviteBot manages invitations to IRC channels. "
-			+	"The configuration is by default "
-			+	"collected from ./settings.properties."
-			)
+			.pg("  InviteBot manages invitations to IRC channels. ")
 
 			.header("OPTIONS")
+			.pg("  The following are command-line options. ")
+
 			.option("-h, --help", "Prints help message.")
 			.option("--version",  "Prints version.")
-		;
 
+			.header("GLOBAL SETTINGS")
+			.pg("  Settings are inn the form:")
+
+			.pg("    field=value")
+
+			.pg("  "
+			+	"The configuration is by default collected from "
+			+	"./settings.properties."
+			);
+
+		addSettingsToHelp(help, Config.getGlobalSettings());
+
+		help.header("CHANNEL SETTINGS")
+			.pg("  "
+			+	"The following are channel-specific settings. "
+			+	"Channel-specific seetings are prefixed with the keys "
+			+	"given in the global 'key' setting."
+			);
+
+		addSettingsToHelp(help, Config.getChannelSettings());
+
+		return help;
+	}
+
+	private static void addSettingsToHelp(Help help, Property settings[]) {
+
+		for(int i = 0; i < settings.length; i++) {
+			Property setting = settings[i];
+			String desc = setting.description();
+			if(setting.required())
+				desc += "\nRequired.";
+			if(!setting.defaultValue().equals(""))
+				desc += "\nDefault: \"" + setting.defaultValue() + "\"";
+			help.option(setting.toString() + (setting.required() ? "*" : ""), desc);
+		}
+
+		help.pg("  "
+		+	"Settings marked with * are required."
+		);
+	}
+
+	private static Config parseArguments(String args[]) throws IOException, PropertyMapperException {
+		Help help = getHelpMessage();
 		Lexer lex = new Lexer(args);
 		String configFilename = null;
 
@@ -72,7 +115,7 @@ public class InviteBot{
 				help.print(System.out);
 				System.exit(0);
 			case "--version":
-				System.out.printf("%s version %s",
+				System.out.printf("%s version %s\n",
 					getName(),
 					getVersion()
 				);
@@ -82,9 +125,9 @@ public class InviteBot{
 			} else if(configFilename == null)
 				configFilename = token;
 			else
-				throw new Exception("Unexpected argument '" + token + "'");
+				throw new ArgumentException("Unexpected argument '" + token + "'");
 
-		} catch(Exception e) {
+		} catch(ArgumentException e) {
 			System.err.println("Error when parsing command-line arguments:");
 			System.err.println("  " + e.getMessage());
 			System.exit(1);
@@ -111,7 +154,7 @@ public class InviteBot{
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void main(String [] args) throws IOException{
+	public static void main(String [] args) throws IOException, PropertyMapperException{
 		properties = loadResourceProperties("/application.properties");
 		Config config = parseArguments(args);
 		Inviter inviter = new Inviter(config);

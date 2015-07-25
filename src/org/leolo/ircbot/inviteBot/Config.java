@@ -9,6 +9,9 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Properties;
 
+import org.leolo.ircbot.inviteBot.util.PropertyMapper;
+import org.leolo.ircbot.inviteBot.util.Property;
+import org.leolo.ircbot.inviteBot.util.PropertyMapperException;
 import org.leolo.ircbot.inviteBot.util.Glob;
 import org.pircbotx.User;
 import org.slf4j.Logger;
@@ -17,22 +20,32 @@ import org.slf4j.LoggerFactory;
 class Config {
 	final Logger logger = LoggerFactory.getLogger(Config.class);
 	class Channel {
+		@Property( name = ".join", description = "IRC channel to join.", required = true )
 		private String channelName;
+
+		@Property( name = ".exemptMask", description = "TO BE DOCUMENTED." )
 		private String[] exemptMask;
+
+		@Property( name = ".exempt", description = "TO BE DOCUMENTED." )
 		private String[] exemptNick;
+
+		@Property( name = ".listen", description = "TO BE DOCUMENTED." )
 		private String listenChannel;
+
+		@Property( name = ".report", description = "TO BE DOCUMENTED." )
 		private String reportChannel;
+
+		@Property( name = ".admin", description = "TO BE DOCUMENTED." )
 		private String[] admins;
+
+		@Property( name = ".key", description = "TO BE DOCUMENTED." )
 		private String adminkey;
-		Channel(Properties setting, String key) {
-			this.channelName = setting.getProperty(key + ".join");
-			this.listenChannel = setting.getProperty(key + ".listen");
-			exemptMask = setting.getProperty(key + ".exemptMask", "")
-					.split(",");
-			exemptNick = setting.getProperty(key + ".exempt", "").split(",");
-			this.reportChannel = setting.getProperty(key + ".report","");
-			this.admins = setting.getProperty(key+".admin", "").split(",");
-			this.adminkey = setting.getProperty(key+".key", null);
+
+		Channel(Properties setting, String key) throws PropertyMapperException {
+			PropertyMapper mapper = new PropertyMapper(this);
+			mapper.fillDefaults();
+			mapper.map(key, setting);
+			mapper.checkRequired();
 		}
 
 		public String getChannelName() {
@@ -81,46 +94,60 @@ class Config {
 			return false;
 		}
 	}
-	private String[] admins;
-	private String escape;
-	private String ident;
-	private ArrayList<Channel> channelList;
-	private String nick;
-	private String username;
-	private String password;
-	private int port;
+
+	@Property( description = "IRC server to connect to.", required = true )
 	private String server;
-	private String welcomeMessage;
-	private Properties prop;
+
+	@Property( description = "Port to connect to.", defaultValue = "6667" )
+	private int port;
+
+	@Property( description = "Whether to use secure TLS/SSL connection.", defaultValue = "false" )
 	private boolean ssl;
 
-	public Config() throws FileNotFoundException, IOException {
+	@Property( description = "Password which bot will use to authenticate itself on IRC network." )
+	private String password;
+
+	@Property( name = "admin", description = "Comma-separated list of admins who can control the bot." )
+	private String[] admins;
+
+	@Property( description = "Escape prefix used for commands given to bot.", defaultValue = "!" )
+	private String escape;
+
+	@Property( description = "IRC nickname used by the bot.", defaultValue = "inviteBot" )
+	private String nick;
+
+	@Property( description = "Login name seen in IRC beside hostname.", defaultValue = "inviteBot" )
+	private String username;
+
+	@Property( name = "key", description = "Comma-separated list of prefixes used to configure channels.", defaultValue = "" )
+	private String channelStringList[];
+
+	@Property( description = "IRC profile identity field.", defaultValue = "pircbot" )
+	private String ident;
+
+	@Property( name = "welcome", description = "Welcome message.", defaultValue = "Welcome to %t!" )
+	private String welcomeMessage;
+
+	private ArrayList<Channel> channelList;
+
+	private Properties prop;
+
+	public Config() throws FileNotFoundException, IOException, PropertyMapperException {
 		this("settings.properties");
 	}
 
-	public Config(String file) throws FileNotFoundException, IOException {
+	public Config(String file) throws FileNotFoundException, IOException, PropertyMapperException {
 		channelList = new ArrayList<>();
-		java.util.Properties setting = new java.util.Properties();
-		setting.load(new java.io.FileInputStream(file));
-		prop = setting;
-		server = setting.getProperty("server", "chat.freenode.net");
-		try {
-			port = Integer.parseInt(setting.getProperty("port"));
-		} catch (NumberFormatException nfe) {
-			port = 6667;
-		}
-		password = setting.getProperty("password", "");
-		nick = setting.getProperty("nick", "inviteBot");
-		username = setting.getProperty("user", nick);
-		ident = setting.getProperty("ident", "pircbot");
-		ssl = Boolean.parseBoolean(setting.getProperty("ssl", "false"));
-		String[] keys = setting.getProperty("key", "").split(",");
+		prop = new java.util.Properties();
+		prop.load(new java.io.FileInputStream(file));
+		PropertyMapper mapper = new PropertyMapper(this);
+		mapper.fillDefaults();
+		mapper.map(prop);
+		mapper.checkRequired();
+		String[] keys = channelStringList;
 		for (String s : keys) {
-			channelList.add(new Channel(setting, s));
+			channelList.add(new Channel(prop, s));
 		}
-		escape = setting.getProperty("escape", "!");
-		welcomeMessage = setting.getProperty("welcome", "Welcome to %t!");
-		admins = setting.getProperty("admin", "").split(",");
 	}
 
 	public String[] getAdmins() {
@@ -281,5 +308,12 @@ class Config {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-	
+
+	public static Property[] getGlobalSettings() {
+		return PropertyMapper.getProperties(Config.class);
+	}
+
+	public static Property[] getChannelSettings() {
+		return PropertyMapper.getProperties(Channel.class);
+	}
 }
