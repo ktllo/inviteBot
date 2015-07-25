@@ -56,7 +56,7 @@ public class PropertyMapperTest extends TestCase
 	public void testMapper() throws PropertyMapperException, IOException
 	{
 		Configuration config = new Configuration();
-		InputStream input = getClass().getResourceAsStream("/configuration.properties");
+		InputStream input = getClass().getResourceAsStream("/utilPropertyMapperTest.properties");
 		Properties properties = new Properties();
 		properties.load(input);
 		PropertyMapper mapper = new PropertyMapper(config);
@@ -117,7 +117,7 @@ public class PropertyMapperTest extends TestCase
 	public void testRequired() throws PropertyMapperException, IOException
 	{
 		ConfigurationWithRequiredField config = new ConfigurationWithRequiredField();
-		InputStream input = getClass().getResourceAsStream("/configuration.properties");
+		InputStream input = getClass().getResourceAsStream("/utilPropertyMapperTest.properties");
 		Properties properties = new Properties();
 		properties.load(input);
 		boolean caught = false;
