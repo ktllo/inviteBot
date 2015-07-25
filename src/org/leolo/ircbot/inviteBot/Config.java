@@ -23,22 +23,22 @@ class Config {
 		@Property( name = ".join", description = "IRC channel to join.", required = true )
 		private String channelName;
 
-		@Property( name = ".exemptMask", description = "TO BE DOCUMENTED." )
+		@Property( name = ".exemptMask", description = "Comma-separated list of mask that is exempt from remove" )
 		private String[] exemptMask;
 
-		@Property( name = ".exempt", description = "TO BE DOCUMENTED." )
+		@Property( name = ".exempt", description = "Comma-separated list of nick that is exempt from remov" )
 		private String[] exemptNick;
 
-		@Property( name = ".listen", description = "TO BE DOCUMENTED." )
+		@Property( name = ".listen", description = "Where the bot will listen to incoming join." )
 		private String listenChannel;
 
-		@Property( name = ".report", description = "TO BE DOCUMENTED." )
+		@Property( name = ".report", description = "Where the bot will reports join, invite and remove" )
 		private String reportChannel;
 
-		@Property( name = ".admin", description = "TO BE DOCUMENTED." )
+		@Property( name = ".admin", description = "Comma-separated list of mask that is able to invite for this channel" )
 		private String[] admins;
 
-		@Property( name = ".key", description = "TO BE DOCUMENTED." )
+		@Property( name = ".key", description = "Unused property" )
 		private String adminkey;
 
 		Channel(Properties setting, String key) throws PropertyMapperException {
