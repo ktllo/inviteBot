@@ -24,10 +24,10 @@ class Config {
 		private String channelName;
 
 		@Property( name = ".exemptMask", description = "Comma-separated list of mask that is exempt from remove" )
-		private String[] exemptMask;
+		private ArrayList<String> exemptMask;
 
 		@Property( name = ".exempt", description = "Comma-separated list of nick that is exempt from remov" )
-		private String[] exemptNick;
+		private ArrayList<String> exemptNick;
 
 		@Property( name = ".listen", description = "Where the bot will listen to incoming join." )
 		private String listenChannel;
@@ -36,9 +36,10 @@ class Config {
 		private String reportChannel;
 
 		@Property( name = ".admin", description = "Comma-separated list of mask that is able to invite for this channel" )
-		private String[] admins;
+		private ArrayList<String> admins;
 
 		@Property( name = ".key", description = "Unused property" )
+		@Deprecated
 		private String adminkey;
 
 		Channel(Properties setting, String key) throws PropertyMapperException {
@@ -52,11 +53,11 @@ class Config {
 			return channelName;
 		}
 
-		public String[] getExemptMask() {
+		public ArrayList<String> getExemptMask() {
 			return exemptMask;
 		}
 
-		public String[] getExemptNick() {
+		public ArrayList<String> getExemptNick() {
 			return exemptNick;
 		}
 
@@ -209,8 +210,7 @@ class Config {
 	 * @param user User to be checked
 	 * @return true if user is super admin
 	 */
-	@Deprecated
-	public boolean isAdmin(User user){
+	public boolean isGlobalAdmin(User user){
 		if(user.isIrcop())
 			return true;
 		for(String admin:admins){
@@ -221,9 +221,22 @@ class Config {
 		return false;
 	}
 	
+	public boolean isAdmin(User user){
+		if(isGlobalAdmin(user)){
+			return true;
+		}
+		for(Channel c:channelList){
+			if(c.isAdmin(user)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	
 	public boolean isAdmin(User user,String channel){
 		logger.warn("User {}!{}@{} checking admin for channel {}", user.getNick(),user.getLogin(),user.getHostmask(), channel);
-		if(isAdmin(user))
+		if(isGlobalAdmin(user))
 			return true;
 		for(Channel c:channelList){
 //			if(channel.equalsIgnoreCase(c.channelName) ||
@@ -251,10 +264,6 @@ class Config {
 			}	
 		}
 		return false;
-	}
-	
-	public boolean isGlobalAdmin(User user){
-		return isAdmin(user);
 	}
 	
 	public String getWelcomeMessage() {

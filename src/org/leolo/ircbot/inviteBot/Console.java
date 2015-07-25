@@ -1,5 +1,9 @@
 package org.leolo.ircbot.inviteBot;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.leolo.ircbot.inviteBot.Config.Channel;
 import org.leolo.ircbot.inviteBot.util.Color;
 import org.leolo.ircbot.inviteBot.util.ColorName;
 import org.pircbotx.PircBotX;
@@ -63,6 +67,11 @@ public class Console extends ListenerAdapter<PircBotX> {
 				event.getUser(),
 				event.getBot(),
 				event.getUser().getNick());
+		if(msg.length()==0 && config.isGlobalAdmin(event.getUser())){
+			msg = processMessage(event.getMessage(),
+					event.getUser(),
+					event.getBot());
+		}
 		if(msg.length()>0){
 			String [] lines = msg.split("\n");
 			for(String line:lines){
@@ -92,7 +101,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				}
 			}
 		}else if(message.startsWith("info")){
-			//if(config.isGlobalAdmin(user) || config.isListenChannel(source)){
+			if(config.isAdmin(user)){
 				long uptime = System.currentTimeMillis() - inviter.START;
 				int upD = (int)(uptime/86400000);
 				int upH = ((int)(uptime/3600000))%24;
@@ -111,7 +120,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 					sb.append(upS).append(" seconds ");
 				
 				return sb.toString();
-			//}
+			}
 		}else if(message.startsWith("version")){
 			return InviteBot.getName() + " version " + InviteBot.getVersion();
 		}else if(message.startsWith("resend")){
@@ -151,6 +160,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 				sb.append("Global admin only ").append(Color.defaultColor());
 				sb.append("Change the bot's nickname to the nockname given\n");
 				return sb.toString();
+			}else if(cmd[1].equalsIgnoreCase("whoami")){
+				return "Checks is the bot reconize you";
 			}
 		}else if(message.startsWith("nick")){
 			String [] cmd = rmessage.split(" ");
@@ -175,8 +186,36 @@ public class Console extends ListenerAdapter<PircBotX> {
 			if(config.isGlobalAdmin(user)){
 				return "backup as "+config.writeBackup();
 			}
+		}else if(message.startsWith("moo")){
+			return "moooo";
+		}else if(message.startsWith("whoami")){
+			if(config.isGlobalAdmin(user)){
+				return "Global Admin";
+			}
+			ArrayList<String> ch = new ArrayList<>();
+			for(Channel c : config.getChannels()){
+				if(c.isAdmin(user)){
+					ch.add(c.getChannelName());
+				}
+			}
+			if(ch.size() > 0){
+				Iterator<String> ich = ch.iterator();
+				StringBuilder sb = new StringBuilder();
+				sb.append("Local admin of: ");
+				while(ich.hasNext()){
+					sb.append(ich.next());
+					if(ich.hasNext()){
+						sb.append(", ");
+					}
+				}
+			}
+			return "I don't reconize you";
 		}
 		return "";
 	}
-
+	
+	private String processMessage(String message,User user,PircBotX bot){
+		return "";
+	}
+	
 }
