@@ -189,14 +189,17 @@ class Config {
 
 	private Properties prop;
 
+	private String configFileLocation;
+
 	public Config() throws FileNotFoundException, IOException, PropertyMapperException {
 		this("settings.properties");
 	}
 
 	public Config(String file) throws FileNotFoundException, IOException, PropertyMapperException {
+		configFileLocation = file;
 		channelList = new ArrayList<>();
 		prop = new java.util.Properties();
-		prop.load(new java.io.FileInputStream(file));
+		prop.load(new java.io.FileInputStream(configFileLocation));
 		PropertyMapper mapper = new PropertyMapper(this);
 		mapper.fillDefaults();
 		mapper.map(prop);
@@ -361,7 +364,7 @@ class Config {
 	}
 	
 	public String writeBackup(){
-		String target = "settings.properties."+Integer.toHexString(prop.hashCode());
+		String target = configFileLocation+"."+Integer.toHexString(prop.hashCode());
 		try {
 			prop.store(new PrintWriter(target), "Backup at "+new Date());
 		} catch (IOException e) {
@@ -372,7 +375,7 @@ class Config {
 	}
 
 	public String write(){
-		String target = "settings.properties";
+		String target = configFileLocation;
 		try {
 			prop.store(new PrintWriter(target), "Backup at "+new Date());
 		} catch (IOException e) {
