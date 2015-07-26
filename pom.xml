@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.leolo.ircbot</groupId>
 	<artifactId>inviteBot</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>1.0</version>
 	<packaging>jar</packaging>
 	<name>inviteBot</name>
 	<url>https://github.com/ktllo/inviteBot</url>
