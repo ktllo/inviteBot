@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.leolo.ircbot.inviteBot.util.Color;
 import org.leolo.ircbot.inviteBot.util.ColorName;
+import org.leolo.ircbot.inviteBot.util.UserUtil;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -62,10 +63,8 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 								event.getUser().getNick()+
 								" :Removed from holding channel");
 						record.setStatus(JoinRecord.Status.REMOVE_PENDING);
-						logger.info(USAGE,"User {}!{}@{} is removed from {}",
-							event.getUser().getNick(),
-							event.getUser().getLogin(),
-							event.getUser().getHostmask(),
+						logger.info(USAGE,"User {} is removed from {}",
+							UserUtil.getUserHostmask(event.getUser()),
 							record.getSource()
 						);
 					}
@@ -259,8 +258,8 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 				event.getBot().sendIRC().message(
 						config.getReportChannel(event.getChannel().getName()), 
 						"User " + Color.color(ColorName.RED)+
-						event.getUser().getNick() + "!" + event.getUser().getLogin() +
-						"@" + event.getUser().getHostmask() + Color.defaultColor() +
+						UserUtil.getUserHostmask(event.getUser())
+						+ Color.defaultColor() +
 						" joined "+event.getChannel().getName()+" Q:" + 
 								record.getQuestion().getQuestion()+" Sol:"+
 								record.getQuestion().getSolution()
