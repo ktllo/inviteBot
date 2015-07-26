@@ -70,7 +70,7 @@ class Config {
 
 		public boolean isAdmin(User user){
 			for(String admin:admins){
-				if(Glob.match(admin, user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask()))
+				if(Glob.match(admin, getUserHostmask(user)))
 					return true;
 				
 			}
@@ -82,7 +82,7 @@ class Config {
 		}
 		
 		public boolean isExempted(User user){
-			String hostmask = user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask();
+			String hostmask = getUserHostmask(user);
 			for(String mask:exemptMask){
 				if(Glob.match(mask, hostmask))
 					return true;
@@ -283,7 +283,7 @@ class Config {
 		if(user.isIrcop())
 			return true;
 		for(String admin:admins){
-			if(Glob.match(admin, user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask()))
+			if(Glob.match(admin, getUserHostmask(user)))
 				return true;
 			
 		}
@@ -304,7 +304,7 @@ class Config {
 	
 	
 	public boolean isAdmin(User user,String channel){
-		logger.warn("User {}!{}@{} checking admin for channel {}", user.getNick(),user.getLogin(),user.getHostmask(), channel);
+		logger.warn("User {} checking admin for channel {}", getUserHostmask(user), channel);
 		if(isGlobalAdmin(user))
 			return true;
 		for(Channel c:channelList){
@@ -404,6 +404,10 @@ class Config {
 
 	public static Property[] getChannelSettings() {
 		return PropertyMapper.getProperties(Channel.class);
+	}
+
+	private static String getUserHostmask(User user) {
+		return user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask();
 	}
 
 	@Override
