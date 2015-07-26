@@ -99,7 +99,7 @@ public class InviteBot{
 		);
 	}
 
-	private static Config parseArguments(String args[]) throws IOException, PropertyMapperException {
+	private static Config parseArguments(String args[]) throws IOException, ConfigException {
 		Help help = getHelpMessage();
 		Lexer lex = new Lexer(args);
 		String configFilename = null;
@@ -154,7 +154,7 @@ public class InviteBot{
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void main(String [] args) throws PropertyMapperException{
+	public static void main(String [] args){
 		Config config = null;
 
 		try {
@@ -164,7 +164,11 @@ public class InviteBot{
 			System.err.println("Failed to initialize InviteBot:");
 			System.err.println(e.getMessage());
 			System.exit(1);
-		} 
+		} catch(ConfigException e) {
+			System.err.println("Configuration error:");
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
 
 		Inviter inviter = new Inviter(config);
 		Builder b = new Configuration.Builder()
