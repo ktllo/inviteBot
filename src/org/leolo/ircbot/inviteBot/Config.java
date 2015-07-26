@@ -194,15 +194,18 @@ class Config {
 
 	private String configFileLocation;
 
-	public Config() throws FileNotFoundException, IOException, PropertyMapperException {
+	public Config() throws FileNotFoundException, IOException, ConfigException {
 		this("settings.properties");
 	}
 
-	public Config(String file) throws FileNotFoundException, IOException, PropertyMapperException {
-		this(new FileReader(file), file);
+	public Config(String file) throws IOException, ConfigException {
+		this(null, file);
 	}
 
-	protected Config(Reader input, String file) throws IOException, PropertyMapperException {
+	protected Config(Reader input, String file) throws IOException, ConfigException {
+	try {
+		if(input == null)
+			input = new FileReader(file);
 		configFileLocation = file;
 		channelList = new ArrayList<>();
 		prop = new java.util.Properties();
@@ -220,7 +223,11 @@ class Config {
 			c.key = s;
 			channelList.add(c);
 		}
-	}
+	} catch(FileNotFoundException e) {
+		throw new FileNotFoundException("Failed to find configuration file '" + file + "'");
+	} catch(PropertyMapperException e) {
+		throw new ConfigException(e.getMessage());
+	} /* try */ }
 
 	public String[] getAdmins() {
 		return admins;
