@@ -29,7 +29,6 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	
 	protected Vector<JoinRecord> pendingItems = new Vector<>();
 	final long START = System.currentTimeMillis();
-	protected Vector<String> changingHost = new Vector<>();
 	private Config config;
 	
 	Inviter(Config config){
@@ -42,14 +41,6 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		if(event.getUser().getNick().equalsIgnoreCase(config.getNick())){
 			return;
 		}
-		for(String s:changingHost){
-			if(event.getUser().getNick().equalsIgnoreCase(s)){
-				for(JoinRecord record:pendingItems){
-					record.setStatus(JoinRecord.Status.NORMAL);
-				}
-			}
-		}
-		changingHost.remove(event.getUser().getNick());
 		JoinRecord remove = null;
 		for(JoinRecord record:pendingItems){
 			if(record.getNick().equalsIgnoreCase(event.getUser().getNick())){
