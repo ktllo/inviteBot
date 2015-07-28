@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Properties;
 
 import org.leolo.ircbot.inviteBot.util.PropertyMapper;
@@ -23,24 +25,24 @@ class Config {
 		@Property( name = ".join", description = "IRC channel to join.", required = true )
 		private String channelName;
 
-		@Property( name = ".exemptMask", description = "TO BE DOCUMENTED." )
-		private String[] exemptMask;
+		@Property( name = ".exemptMask", description = "Comma-separated list of mask that is exempt from remove" )
+		private ArrayList<String> exemptMask;
 
-		@Property( name = ".exempt", description = "TO BE DOCUMENTED." )
-		private String[] exemptNick;
-
-		@Property( name = ".listen", description = "TO BE DOCUMENTED." )
+		@Property( name = ".listen", description = "Where the bot will listen to incoming join." )
 		private String listenChannel;
 
-		@Property( name = ".report", description = "TO BE DOCUMENTED." )
+		@Property( name = ".report", description = "Where the bot will reports join, invite and remove" )
 		private String reportChannel;
 
-		@Property( name = ".admin", description = "TO BE DOCUMENTED." )
-		private String[] admins;
+		@Property( name = ".admin", description = "Comma-separated list of mask that is able to invite for this channel" )
+		private ArrayList<String> admins;
 
-		@Property( name = ".key", description = "TO BE DOCUMENTED." )
+		@Property( name = ".key", description = "Unused property" )
+		@Deprecated
 		private String adminkey;
-
+		
+		private String key;
+		
 		Channel(Properties setting, String key) throws PropertyMapperException {
 			PropertyMapper mapper = new PropertyMapper(this);
 			mapper.fillDefaults();
@@ -52,12 +54,8 @@ class Config {
 			return channelName;
 		}
 
-		public String[] getExemptMask() {
+		public Collection<String> getExemptMask() {
 			return exemptMask;
-		}
-
-		public String[] getExemptNick() {
-			return exemptNick;
 		}
 
 		public String getListenChannel() {
@@ -82,16 +80,75 @@ class Config {
 		}
 		
 		public boolean isExempted(User user){
-			for(String nick:exemptNick){
-				if(user.getNick().equalsIgnoreCase(nick))
-					return true;
-			}
 			String hostmask = user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask();
 			for(String mask:exemptMask){
 				if(Glob.match(mask, hostmask))
 					return true;
 			}
 			return false;
+		}
+		
+		public boolean removeAdmin(String mask){
+			Iterator<String> iAdmin = admins.iterator();
+			while(iAdmin.hasNext()){
+				String admin = iAdmin.next();
+				if(admin.equalsIgnoreCase(mask)){
+					iAdmin.remove();
+					updateAdmin();
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		public void addAdmin(String mask){
+			admins.add(mask);
+			updateAdmin();
+		}
+		
+		public boolean removeExempt(String mask){
+			Iterator<String> iExemptMask = exemptMask.iterator();
+			while(iExemptMask.hasNext()){
+				String admin = iExemptMask.next();
+				if(admin.equalsIgnoreCase(mask)){
+					iExemptMask.remove();
+					updateExempt();
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		public void addExempt(String mask){
+			exemptMask.add(mask);
+			updateExempt();
+		}
+		
+		public String getKey(){
+			return key;
+		}
+		
+
+		private void updateAdmin(){
+			StringBuilder sb = new StringBuilder();
+			Iterator<String> iAdmins = admins.iterator();
+			while(iAdmins.hasNext()){
+				sb.append(iAdmins.next());
+				if(iAdmins.hasNext())
+					sb.append(",");
+			}
+			prop.setProperty(key+".admin", sb.toString());
+		}
+		
+		private void updateExempt(){
+			StringBuilder sb = new StringBuilder();
+			Iterator<String> iExempt = exemptMask.iterator();
+			while(iExempt.hasNext()){
+				sb.append(iExempt.next());
+				if(iExempt.hasNext())
+					sb.append(",");
+			}
+			prop.setProperty(key+".exemptMask", sb.toString());
 		}
 	}
 
@@ -116,7 +173,7 @@ class Config {
 	@Property( description = "IRC nickname used by the bot.", defaultValue = "inviteBot" )
 	private String nick;
 
-	@Property( description = "Login name seen in IRC beside hostname.", defaultValue = "inviteBot" )
+	@Property( description = "Login name seen in IRC beside nickname.", defaultValue = "" )
 	private String username;
 
 	@Property( name = "key", description = "Comma-separated list of prefixes used to configure channels.", defaultValue = "" )
@@ -132,21 +189,29 @@ class Config {
 
 	private Properties prop;
 
+	private String configFileLocation;
+
 	public Config() throws FileNotFoundException, IOException, PropertyMapperException {
 		this("settings.properties");
 	}
 
 	public Config(String file) throws FileNotFoundException, IOException, PropertyMapperException {
+		configFileLocation = file;
 		channelList = new ArrayList<>();
 		prop = new java.util.Properties();
-		prop.load(new java.io.FileInputStream(file));
+		prop.load(new java.io.FileInputStream(configFileLocation));
 		PropertyMapper mapper = new PropertyMapper(this);
 		mapper.fillDefaults();
 		mapper.map(prop);
 		mapper.checkRequired();
+		if(username.length()==0){
+			username = nick;
+		}
 		String[] keys = channelStringList;
 		for (String s : keys) {
-			channelList.add(new Channel(prop, s));
+			Channel c = new Channel(prop, s);
+			c.key = s;
+			channelList.add(c);
 		}
 	}
 
@@ -209,8 +274,7 @@ class Config {
 	 * @param user User to be checked
 	 * @return true if user is super admin
 	 */
-	@Deprecated
-	public boolean isAdmin(User user){
+	public boolean isGlobalAdmin(User user){
 		if(user.isIrcop())
 			return true;
 		for(String admin:admins){
@@ -221,21 +285,34 @@ class Config {
 		return false;
 	}
 	
+	public boolean isAdmin(User user){
+		if(isGlobalAdmin(user)){
+			return true;
+		}
+		for(Channel c:channelList){
+			if(c.isAdmin(user)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	
 	public boolean isAdmin(User user,String channel){
 		logger.warn("User {}!{}@{} checking admin for channel {}", user.getNick(),user.getLogin(),user.getHostmask(), channel);
-		if(isAdmin(user))
+		if(isGlobalAdmin(user))
 			return true;
 		for(Channel c:channelList){
-//			if(channel.equalsIgnoreCase(c.channelName) ||
-//					channel.equalsIgnoreCase(c.listenChannel) ||
-//					channel.equalsIgnoreCase(c.reportChannel)){
+			if(channel.equalsIgnoreCase(c.channelName) ||
+					channel.equalsIgnoreCase(c.listenChannel) ||
+					channel.equalsIgnoreCase(c.reportChannel)){
 				logger.warn("Checking channel {}",c.channelName);
 				if(c.isAdmin(user)){
 					logger.warn("Found admin right in channel {} for {}",
 							c.channelName,user.getNick());
 					return true;
 				}
-//			}	
+			}	
 		}
 		return false;
 	}
@@ -251,10 +328,6 @@ class Config {
 			}	
 		}
 		return false;
-	}
-	
-	public boolean isGlobalAdmin(User user){
-		return isAdmin(user);
 	}
 	
 	public String getWelcomeMessage() {
@@ -291,7 +364,7 @@ class Config {
 	}
 	
 	public String writeBackup(){
-		String target = "settings.properties."+Integer.toHexString(prop.hashCode());
+		String target = configFileLocation+"."+Integer.toHexString(prop.hashCode());
 		try {
 			prop.store(new PrintWriter(target), "Backup at "+new Date());
 		} catch (IOException e) {
@@ -301,6 +374,17 @@ class Config {
 		return target;
 	}
 
+	public String write(){
+		String target = configFileLocation;
+		try {
+			prop.store(new PrintWriter(target), "Backup at "+new Date());
+		} catch (IOException e) {
+			logger.error(e.toString(), e);
+			e.printStackTrace();
+		}
+		return target;
+	}
+	
 	public String getUsername() {
 		return username;
 	}
@@ -315,5 +399,42 @@ class Config {
 
 	public static Property[] getChannelSettings() {
 		return PropertyMapper.getProperties(Channel.class);
+	}
+
+	@Override
+	public String toString() {
+		final int maxLen = 10;
+		StringBuilder builder = new StringBuilder();
+		builder.append("Config [logger=");
+		builder.append(logger);
+		builder.append(", server=");
+		builder.append(server);
+		builder.append(", port=");
+		builder.append(port);
+		builder.append(", ssl=");
+		builder.append(ssl);
+		builder.append(", password=");
+		builder.append(password);
+		builder.append(", admins=");
+		builder.append(admins);
+		builder.append(", escape=");
+		builder.append(escape);
+		builder.append(", nick=");
+		builder.append(nick);
+		builder.append(", username=");
+		builder.append(username);
+		builder.append(", channelStringList=");
+		builder.append(channelStringList);
+		builder.append(", ident=");
+		builder.append(ident);
+		builder.append(", welcomeMessage=");
+		builder.append(welcomeMessage);
+		builder.append(", channelList=");
+		builder.append(channelList != null ? channelList.subList(0,
+				Math.min(channelList.size(), maxLen)) : null);
+		builder.append(", prop=");
+		builder.append(prop);
+		builder.append("]");
+		return builder.toString();
 	}
 }
