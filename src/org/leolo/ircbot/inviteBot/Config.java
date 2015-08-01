@@ -153,6 +153,10 @@ class Config {
 			}
 			prop.setProperty(key+".exemptMask", sb.toString());
 		}
+
+		protected ArrayList<String> getAdmins() {
+			return admins;
+		}
 	}
 
 	@Property( description = "IRC server to connect to.", required = true )
