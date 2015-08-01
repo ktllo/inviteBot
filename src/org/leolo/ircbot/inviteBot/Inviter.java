@@ -29,7 +29,6 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	
 	protected Vector<JoinRecord> pendingItems = new Vector<>();
 	final long START = System.currentTimeMillis();
-	protected Vector<String> changingHost = new Vector<>();
 	private Config config;
 	
 	Inviter(Config config){
@@ -42,14 +41,6 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		if(event.getUser().getNick().equalsIgnoreCase(config.getNick())){
 			return;
 		}
-		for(String s:changingHost){
-			if(event.getUser().getNick().equalsIgnoreCase(s)){
-				for(JoinRecord record:pendingItems){
-					record.setStatus(JoinRecord.Status.NORMAL);
-				}
-			}
-		}
-		changingHost.remove(event.getUser().getNick());
 		JoinRecord remove = null;
 		for(JoinRecord record:pendingItems){
 			if(record.getNick().equalsIgnoreCase(event.getUser().getNick())){
@@ -295,7 +286,6 @@ class JoinRecord{
 		this.created = new Date();
 		this.status = Status.WAIT;
 		this.question = Question.next();
-		id = random.nextLong();
 		this.source = source;
 	}
 
@@ -308,19 +298,12 @@ class JoinRecord{
 		}
 	}
 
-	private static java.util.Random random;
-	
-	static{
-		random = new java.util.Random();
-	}
-	
 	private ArrayList<String> targetList;
 	private String source;
 	private Question question;
 	private String nick;
 	private Date created;
 	private Status status;
-	public final long id;
 	
 	
 	enum Status{
