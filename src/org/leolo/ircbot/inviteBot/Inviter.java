@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.leolo.ircbot.inviteBot.util.Color;
 import org.leolo.ircbot.inviteBot.util.ColorName;
+import org.leolo.ircbot.inviteBot.util.UserUtil;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -28,7 +29,6 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 	
 	protected Vector<JoinRecord> pendingItems = new Vector<>();
 	final long START = System.currentTimeMillis();
-	protected Vector<String> changingHost = new Vector<>();
 	private Config config;
 	
 	Inviter(Config config){
@@ -41,14 +41,6 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 		if(event.getUser().getNick().equalsIgnoreCase(config.getNick())){
 			return;
 		}
-		for(String s:changingHost){
-			if(event.getUser().getNick().equalsIgnoreCase(s)){
-				for(JoinRecord record:pendingItems){
-					record.setStatus(JoinRecord.Status.NORMAL);
-				}
-			}
-		}
-		changingHost.remove(event.getUser().getNick());
 		JoinRecord remove = null;
 		for(JoinRecord record:pendingItems){
 			if(record.getNick().equalsIgnoreCase(event.getUser().getNick())){
@@ -62,10 +54,8 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 								event.getUser().getNick()+
 								" :Removed from holding channel");
 						record.setStatus(JoinRecord.Status.REMOVE_PENDING);
-						logger.info(USAGE,"User {}!{}@{} is removed from {}",
-							event.getUser().getNick(),
-							event.getUser().getLogin(),
-							event.getUser().getHostmask(),
+						logger.info(USAGE,"User {} is removed from {}",
+							UserUtil.getUserHostmask(event.getUser()),
 							record.getSource()
 						);
 					}
@@ -259,8 +249,8 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 				event.getBot().sendIRC().message(
 						config.getReportChannel(event.getChannel().getName()), 
 						"User " + Color.color(ColorName.RED)+
-						event.getUser().getNick() + "!" + event.getUser().getLogin() +
-						"@" + event.getUser().getHostmask() + Color.defaultColor() +
+						UserUtil.getUserHostmask(event.getUser())
+						+ Color.defaultColor() +
 						" joined "+event.getChannel().getName()+" Q:" + 
 								record.getQuestion().getQuestion()+" Sol:"+
 								record.getQuestion().getSolution()
@@ -296,7 +286,6 @@ class JoinRecord{
 		this.created = new Date();
 		this.status = Status.WAIT;
 		this.question = Question.next();
-		id = random.nextLong();
 		this.source = source;
 	}
 
@@ -309,19 +298,12 @@ class JoinRecord{
 		}
 	}
 
-	private static java.util.Random random;
-	
-	static{
-		random = new java.util.Random();
-	}
-	
 	private ArrayList<String> targetList;
 	private String source;
 	private Question question;
 	private String nick;
 	private Date created;
 	private Status status;
-	public final long id;
 	
 	
 	enum Status{

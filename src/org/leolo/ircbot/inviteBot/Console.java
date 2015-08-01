@@ -220,9 +220,17 @@ public class Console extends ListenerAdapter<PircBotX> {
 			String lmsg = message.toLowerCase();
 			String [] args = lmsg.split(" ");
 			String rmsg = null;
-			if(args[0].equals("addadmin") || args[0].equals("removeadmin") || 
+			if(args[0].equals("addadmin") || args[0].equals("removeadmin") ||
+					args[0].equals("listadmin") || args[0].equals("listexempt") ||
 					args[0].equals("addexempt") || args[0].equals("removeexempt"))
-			if(args.length != 3){
+			if(
+					((args[0].equals("addadmin") || args[0].equals("removeadmin") ||
+					args[0].equals("addexempt") || args[0].equals("removeexempt"))
+					&& args.length != 3 ) || 
+					(
+							(args[0].equals("listadmin") || args[0].equals("listexempt")) &&
+							args.length != 2
+					)){
 				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRE";
 			}
 			String backupName = config.writeBackup();
@@ -267,6 +275,34 @@ public class Console extends ListenerAdapter<PircBotX> {
 					}
 				}
 				break;
+			case "listadmin":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						Iterator<String> i = c.getAdmins().iterator();
+						StringBuilder sb = new StringBuilder();
+						while(i.hasNext()){
+							sb.append(i.next());
+							if(i.hasNext()){
+								sb.append(" ,");
+							}
+						}
+						return sb.toString();
+					}
+				}
+			case "listexempt":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						Iterator<String> i = c.getExemptMask().iterator();
+						StringBuilder sb = new StringBuilder();
+						while(i.hasNext()){
+							sb.append(i.next());
+							if(i.hasNext()){
+								sb.append(" ,");
+							}
+						}
+						return sb.toString();
+					}
+				}
 			default:
 				return "";
 			}

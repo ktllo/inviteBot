@@ -10,11 +10,14 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
+import java.io.FileReader;
+import java.io.Reader;
 
 import org.leolo.ircbot.inviteBot.util.PropertyMapper;
 import org.leolo.ircbot.inviteBot.util.Property;
 import org.leolo.ircbot.inviteBot.util.PropertyMapperException;
 import org.leolo.ircbot.inviteBot.util.Glob;
+import org.leolo.ircbot.inviteBot.util.UserUtil;
 import org.pircbotx.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +71,7 @@ class Config {
 
 		public boolean isAdmin(User user){
 			for(String admin:admins){
-				if(Glob.match(admin, user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask()))
+				if(Glob.match(admin, UserUtil.getUserHostmask(user)))
 					return true;
 				
 			}
@@ -80,7 +83,7 @@ class Config {
 		}
 		
 		public boolean isExempted(User user){
-			String hostmask = user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask();
+			String hostmask = UserUtil.getUserHostmask(user);
 			for(String mask:exemptMask){
 				if(Glob.match(mask, hostmask))
 					return true;
@@ -150,6 +153,10 @@ class Config {
 			}
 			prop.setProperty(key+".exemptMask", sb.toString());
 		}
+
+		protected ArrayList<String> getAdmins() {
+			return admins;
+		}
 	}
 
 	@Property( description = "IRC server to connect to.", required = true )
@@ -191,15 +198,22 @@ class Config {
 
 	private String configFileLocation;
 
-	public Config() throws FileNotFoundException, IOException, PropertyMapperException {
+	public Config() throws FileNotFoundException, IOException, ConfigException {
 		this("settings.properties");
 	}
 
-	public Config(String file) throws FileNotFoundException, IOException, PropertyMapperException {
+	public Config(String file) throws IOException, ConfigException {
+		this(null, file);
+	}
+
+	protected Config(Reader input, String file) throws IOException, ConfigException {
+	try {
+		if(input == null)
+			input = new FileReader(file);
 		configFileLocation = file;
 		channelList = new ArrayList<>();
 		prop = new java.util.Properties();
-		prop.load(new java.io.FileInputStream(configFileLocation));
+		prop.load(input);
 		PropertyMapper mapper = new PropertyMapper(this);
 		mapper.fillDefaults();
 		mapper.map(prop);
@@ -213,7 +227,11 @@ class Config {
 			c.key = s;
 			channelList.add(c);
 		}
-	}
+	} catch(FileNotFoundException e) {
+		throw new FileNotFoundException("Failed to find configuration file '" + file + "'");
+	} catch(PropertyMapperException e) {
+		throw new ConfigException(e.getMessage());
+	} /* try */ }
 
 	public String[] getAdmins() {
 		return admins;
@@ -258,10 +276,9 @@ class Config {
 	public String[] getChannelList(){
 		Hashtable<String,String> list = new Hashtable<>();
 		for(Channel c:channelList){
-			list.put(c.channelName, c.channelName);
-			list.put(c.listenChannel,c.listenChannel);
-			if( c.reportChannel.length() > 0)
-				list.put(c.reportChannel,c.reportChannel);
+			for(String channelName : new String[]{c.channelName, c.listenChannel, c.reportChannel})
+				if(channelName.length() != 0)
+					list.put(channelName, channelName);
 		}
 		String [] result = new String[list.size()];
 		list.values().toArray(result);
@@ -278,7 +295,7 @@ class Config {
 		if(user.isIrcop())
 			return true;
 		for(String admin:admins){
-			if(Glob.match(admin, user.getNick()+"!"+user.getLogin()+"@"+user.getHostmask()))
+			if(Glob.match(admin, UserUtil.getUserHostmask(user)))
 				return true;
 			
 		}
@@ -299,7 +316,7 @@ class Config {
 	
 	
 	public boolean isAdmin(User user,String channel){
-		logger.warn("User {}!{}@{} checking admin for channel {}", user.getNick(),user.getLogin(),user.getHostmask(), channel);
+		logger.warn("User {} checking admin for channel {}", UserUtil.getUserHostmask(user), channel);
 		if(isGlobalAdmin(user))
 			return true;
 		for(Channel c:channelList){
