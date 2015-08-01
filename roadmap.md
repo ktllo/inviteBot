@@ -5,6 +5,7 @@
 * Fine control on reporting
 * Per channel welcome message
 * Use single channel for holding channel for multiple joining channel
+* Updates check
 * Use a database for managing runtime-configurable settings such as list of
   admins.
 
