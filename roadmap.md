@@ -17,3 +17,4 @@
 * Local admins can see stats of their own set of channel only
 * Reports in format other than text via IRC and HTML
 * Send reports via DCC
+* Send different difficulty of question based on risk on a hostmask
