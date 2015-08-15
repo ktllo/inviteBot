@@ -25,3 +25,6 @@ To send command to the bot either
 #Admins
 Global admins are who are IRCOp, `admin` set in the settings.properties.
 Local admins are those set in `<key>.admin` set in settings.properties.
+
+#Contact us
+You can find us on ##invitebot on freenode
