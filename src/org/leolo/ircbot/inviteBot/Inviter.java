@@ -7,8 +7,8 @@ import java.util.Vector;
 
 
 
-import org.leolo.ircbot.inviteBot.util.Color;
 import org.leolo.ircbot.inviteBot.util.ColorName;
+import org.leolo.ircbot.inviteBot.util.Font;
 import org.leolo.ircbot.inviteBot.util.UserUtil;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -248,9 +248,9 @@ public class Inviter extends ListenerAdapter<PircBotX>{
 			if(config.getReportChannel(event.getChannel().getName())!=null){
 				event.getBot().sendIRC().message(
 						config.getReportChannel(event.getChannel().getName()), 
-						"User " + Color.color(ColorName.RED)+
+						"User " + Font.color(ColorName.RED)+ Font.setBold() +
 						UserUtil.getUserHostmask(event.getUser())
-						+ Color.defaultColor() +
+						+ Font.reset()+
 						" joined "+event.getChannel().getName()+" Q:" + 
 								record.getQuestion().getQuestion()+" Sol:"+
 								record.getQuestion().getSolution()

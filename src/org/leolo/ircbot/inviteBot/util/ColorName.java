@@ -16,7 +16,8 @@ public enum ColorName {
 	BLUE(12),
 	MAGENTA(13),
 	DARK_GRAY(14),
-	LIGHT_GRAY(15);
+	LIGHT_GRAY(15),
+	DEFAULT(99);
 	
 	private int code;
 	private ColorName(int code){
