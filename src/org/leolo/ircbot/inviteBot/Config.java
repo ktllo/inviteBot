@@ -171,7 +171,7 @@ class Config {
 	@Property( description = "Whether to use secure TLS/SSL connection.", defaultValue = "false" )
 	private boolean ssl;
 
-	@Property( description = "Wether to gzip the backuped config", defaultValue = "false")
+	@Property( description = "Whether to gzip the backuped config", defaultValue = "false")
 	private boolean compressBackup;
 	
 	@Property( description = "Password which bot will use to authenticate itself on IRC network." )
