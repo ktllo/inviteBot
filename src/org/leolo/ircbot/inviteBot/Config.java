@@ -1,7 +1,9 @@
 package org.leolo.ircbot.inviteBot;
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +12,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.zip.GZIPOutputStream;
 import java.io.FileReader;
 import java.io.Reader;
 
@@ -168,6 +171,9 @@ class Config {
 	@Property( description = "Whether to use secure TLS/SSL connection.", defaultValue = "false" )
 	private boolean ssl;
 
+	@Property( description = "Wether to gzip the backuped config", defaultValue = "false")
+	private boolean compressBackup;
+	
 	@Property( description = "Password which bot will use to authenticate itself on IRC network." )
 	private String password;
 
@@ -382,8 +388,18 @@ class Config {
 	
 	public String writeBackup(){
 		String target = configFileLocation+"."+Integer.toHexString(prop.hashCode());
+		if(this.compressBackup)
+			target += ".gz";
 		try {
-			prop.store(new PrintWriter(target), "Backup at "+new Date());
+			OutputStream out = new FileOutputStream(target);
+			if(this.compressBackup){
+				GZIPOutputStream gzos = new GZIPOutputStream(out);
+				prop.store(gzos, "");
+				gzos.close();
+			}else{
+				prop.store(out, "");
+			}
+			out.close();
 		} catch (IOException e) {
 			logger.error(e.toString(), e);
 			e.printStackTrace();
