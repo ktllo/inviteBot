@@ -11,6 +11,9 @@
 * Rewrite Console class, it getting messy
 * Bot stats, report in both IRC and generate web pages at given location
   (Access should controlled by web server).
+* Allow backup to be compressed
+* More detailed logging
+* Handle channel mode stale issuess
 
 
 # Roadmap for version 3.0
