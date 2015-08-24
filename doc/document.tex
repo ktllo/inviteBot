@@ -1,0 +1,51 @@
+\documentclass[a4paper,12pt,titlepage]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.725in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{amsfonts}
+\usepackage[british]{babel}
+\usepackage{multirow}
+\usepackage{datetime}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+%%\usepackage{hyperref}
+\pagestyle{fancy}
+\setlength{\headheight}{15pt}
+
+\title{User guide to invitebot}
+\author{LO Kam Tao Leo\\\href{mailto:leolo@leolo.org}{leolo@leolo.org}}
+\date{\today}
+\begin{document}
+	\maketitle
+\tableofcontents\newpage
+\section{Preface}
+invitebot is an IRC bot developed to helps stopping spambot attacks. It helps by the main channel forwarding user to a holding channel, such user will receives an challenge via notice. If the user solves the challenge, the user will be invited to the main channel.
+\subsection{Bug tracker}
+The bug tracker for this project is the GitHub one, at \url{https://github.com/ktllo/inviteBot}.
+\section{Downloading invitebot}
+The recommended way to download invitebot is though git. The git repository is at \url{https://github.com/ktllo/inviteBot.git}. You may built invitebot via maven, by \texttt{mvn compile package}. The first build may takes a lot of time because this project has a lot of dependency.
+
+If you cannot use maven, you can download the following library,and compile it yourself
+\begin{itemize}
+	\item JUnit 3.8.1
+	\item guava 18.0
+	\item commons-codec 1.10
+	\item PircBotX 2.0.1
+	\item SLF4J 1.7.10
+	\item Log4j 2.2
+	\item org.ivartj.args, available at \url{https://github.com/ivartj/args-java}
+\end{itemize}
+\section{Configuration Guide}
+The configuration file has a default name ``\texttt{setting.properties}''
+\subsection{Basic IRC parameters}
+\paragraph{server} The address of the IRC server, it can be either a domain, or an IP address. The use of IPv6 haven't be tested.
+\paragraph{port} The port number for the IRC server, the default value is 6697
+\paragraph{ssl} Either \texttt{true} or \texttt{false}, to state is SSL being used for the connection. When SSL is being used, SASL-plain will be also used
+\paragraph{password} The server password, or, when SSL is being used,the NickServ password
+\paragraph{username} The username which will be used in SASL authentication
+\paragraph{nick} The nickname for the bot, it can be changed after connection. If the stated nick is being used, a new nick, which has numbers  appended to the given nick will be used.
+\paragraph{ident} The ident which will be sent to the server. The \texttt{identd} server \textbf{WILL NOT} be started. 
+\end{document}
