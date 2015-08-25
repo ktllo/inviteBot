@@ -36,16 +36,32 @@ If you cannot use maven, you can download the following library,and compile it y
 	\item PircBotX 2.0.1
 	\item SLF4J 1.7.10
 	\item Log4j 2.2
-	\item org.ivartj.args, available at \url{https://github.com/ivartj/args-java}
+	\item args, available at \url{https://github.com/ivartj/args-java}
 \end{itemize}
 \section{Configuration Guide}
 The configuration file has a default name ``\texttt{setting.properties}''
+\subsection{How to use this section}
+The bold word at the beginning of the line is the the name of the parameter, following by the description of the parameters.
 \subsection{Basic IRC parameters}
-\paragraph{server} The address of the IRC server, it can be either a domain, or an IP address. The use of IPv6 haven't be tested.
+The setting here are critical to the connection with the IRC network. If you are unsure about the value used here, you should ask help from the IRC network you're going to join. Usually, you can use the same set of parameter, beside the nick, that you're used to connected to the network.
+\paragraph{server} The address of the IRC server, it can be either a domain, or an IP address. The use of IPv6 haven't be tested.  This parameter is \textbf{REQUIRED}
 \paragraph{port} The port number for the IRC server, the default value is 6697
-\paragraph{ssl} Either \texttt{true} or \texttt{false}, to state is SSL being used for the connection. When SSL is being used, SASL-plain will be also used
+\paragraph{ssl} Either \texttt{true} or \texttt{false}, to state is SSL being used for the connection. When SSL is being used, SASL-plain will be also used, default value is no SSL are used
 \paragraph{password} The server password, or, when SSL is being used,the NickServ password
 \paragraph{username} The username which will be used in SASL authentication
 \paragraph{nick} The nickname for the bot, it can be changed after connection. If the stated nick is being used, a new nick, which has numbers  appended to the given nick will be used.
 \paragraph{ident} The ident which will be sent to the server. The \texttt{identd} server \textbf{WILL NOT} be started. 
+\subsection{Global Settings}
+The setting here will apply to ALL channel set the bot operates in.
+\paragraph{escape} A short string used to indicate bot command. The bot will consider it a command if the message sent via channel that bot is in is begin with escape string.
+\paragraph{welcome} A short welcome message that will sent via notice upon user join ``holding channel''. \texttt{\%t} will be escaped into the name of the ``target channel'' that the user will ab able to join.
+\paragraph{admin} A comma separated list of hostmask (\textit{nick!ident@host}) what the user are consider as global administrator. Strictly speaking, this setting is optional, but you should at least states one global administrator.
+\paragraph{key} A comma separated list of identifier, used to identify the channel set, which will be used to in channel settings. 
+\subsection{Channel Setting}
+All setting parameter in this section will preceded with the channel set key, and followed by a period (.). The channel set key is one of the key set in the global settings.
+\paragraph{join} The ``target channel''. This is the channel that the user wish to join. The bot MUST be an operator(+o) in this channel.
+\paragraph{exemptMask} A comma separated list of hostmask (\textit{nick!ident@host}) which the user are exempted from removal. All global and local administrator are automatically exempted from removal.
+\paragraph{listen} The ``holding channel''. The holding channel MUST be unique among other holding channel listed. You should manually set redirection user from  ``target channel'' to ``holding channel''. If the bot is operator in this channel, the bot will remove user from this channel when the user join the ``target channel''.
+\paragraph{report} Where the bot will reports  join and invite
+\paragraph{admin} A comma separated list of hostmask (\textit{nick!ident@host}) what the user are consider as local administrator. All global administrator are considered as local administrator in all channel set. Unlike it global administrator, this value are optional.
 \end{document}
