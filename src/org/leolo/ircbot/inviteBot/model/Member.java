@@ -14,6 +14,8 @@ public class Member {
 	private String userName;
 	private String password;
 	private PasswordMode passwordMode;
+	private boolean enabled;
+	
 	public long getUserId() {
 		return userId;
 	}
@@ -37,6 +39,12 @@ public class Member {
 	}
 	public void setPasswordMode(PasswordMode passwordMode) {
 		this.passwordMode = passwordMode;
+	}
+	public boolean isEnabled() {
+		return enabled;
+	}
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 	
 }
