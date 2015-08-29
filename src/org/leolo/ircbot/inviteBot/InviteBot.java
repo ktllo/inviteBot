@@ -166,6 +166,8 @@ public class InviteBot{
 		.addListener(inviter)
 		.setAutoReconnect(true)
 		.addListener(new Console(config,inviter));
+		System.out.println(config.getDatabaseManager().getMemberDAO());
+		System.exit(0);
 		if(config.isSSL()){
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
 			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.getUsername(), config.getPassword()));
