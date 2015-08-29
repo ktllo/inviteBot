@@ -1,4 +1,4 @@
-package org.leolo.invitebot.db;
+package org.leolo.ircbot.inviteBot.db;
 
 import org.leolo.ircbot.inviteBot.model.Member;
 import org.pircbotx.User;
