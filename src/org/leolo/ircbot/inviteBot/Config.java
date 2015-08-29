@@ -19,6 +19,9 @@ import org.slf4j.LoggerFactory;
 
 class Config {
 	final Logger logger = LoggerFactory.getLogger(Config.class);
+	
+	private static DatabaseManager manager = null;
+	
 	class Channel {
 		@Property( name = ".join", description = "IRC channel to join.", required = true )
 		private String channelName;
@@ -127,7 +130,14 @@ class Config {
 
 	@Property( name = "welcome", description = "Welcome message.", defaultValue = "Welcome to %t!" )
 	private String welcomeMessage;
-
+	
+	@Property( name = "databaseManager", description = "Database Manager.", required = true )
+	private String databaseManager;
+	
+	
+	@Property( name = "connectionString", description = "Connection String for database", required = true )
+	private String connectionString;
+	
 	private ArrayList<Channel> channelList;
 
 	private Properties prop;
@@ -315,5 +325,20 @@ class Config {
 
 	public static Property[] getChannelSettings() {
 		return PropertyMapper.getProperties(Channel.class);
+	}
+	
+	public DatabaseManager getDatabaseManager(){
+		if(manager != null){
+			return manager;
+		}
+		try{
+			manager = (DatabaseManager) Class.forName(databaseManager).newInstance();
+			manager.setConnectionString(connectionString);
+		}catch(ClassNotFoundException | InstantiationException | IllegalAccessException cnfe){
+			//Fatal error. Cannot proceed
+			logger.error("ClassNotFoundException",cnfe);
+			System.exit(1);
+		}
+		return manager;
 	}
 }
