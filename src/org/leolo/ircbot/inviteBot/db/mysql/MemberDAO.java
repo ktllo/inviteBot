@@ -1,5 +1,6 @@
 package org.leolo.ircbot.inviteBot.db.mysql;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.leolo.ircbot.inviteBot.model.Member;
 import org.pircbotx.User;
 import java.sql.*;
@@ -7,15 +8,27 @@ import java.sql.*;
 public class MemberDAO implements org.leolo.ircbot.inviteBot.db.MemberDAO {
 	
 	private Connection conn;
+	private BasicDataSource datasource;
 	
-	MemberDAO(Connection conn){
-		this.conn = conn;
-		System.out.println("DAO created");
+	
+	MemberDAO(BasicDataSource datasource){
+		this.datasource = datasource;
 	}
 	
 	@Override
 	public Member findMember(User user) {
-		// TODO Auto-generated method stub
+		try {
+			Connection conn = datasource.getConnection();
+			PreparedStatement pstmt = conn.prepareStatement("SELECT NOW() AS date;");
+			ResultSet rs = pstmt.executeQuery();
+			rs.next();
+			System.out.println(rs.getString("date"));
+			rs.close();
+			pstmt.close();
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 

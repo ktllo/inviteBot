@@ -3,7 +3,7 @@ package org.leolo.ircbot.inviteBot.db.mysql;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.leolo.ircbot.inviteBot.db.MemberDAO;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +13,7 @@ public class DatabaseManager implements org.leolo.ircbot.inviteBot.DatabaseManag
 	private String connectionString;
 	
 	Connection conn = null;
-	
+	BasicDataSource datasource = null;
 	public String getConnectionString() {
 		return connectionString;
 	}
@@ -30,21 +30,16 @@ public class DatabaseManager implements org.leolo.ircbot.inviteBot.DatabaseManag
 
 	@Override
 	public MemberDAO getMemberDAO() {
-		if(conn == null){
+		if(datasource == null){
 			makeConnection();
 		}
-		return new org.leolo.ircbot.inviteBot.db.mysql.MemberDAO(conn);
+		return new org.leolo.ircbot.inviteBot.db.mysql.MemberDAO(datasource);
 	}
 	
 	private void makeConnection(){
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			conn = DriverManager.getConnection(connectionString);
-		} catch (ClassNotFoundException e) {
-			logger.error("Cannot load driver");
-		} catch (SQLException e) {
-			logger.error("Cannot connect to database",e);
-		}
+		datasource = new BasicDataSource();
+		datasource.setDriverClassName("com.mysql.jdbc.Driver");
+		datasource.setUrl(connectionString);
 	}
 
 }
