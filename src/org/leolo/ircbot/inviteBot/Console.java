@@ -149,16 +149,26 @@ public class Console extends ListenerAdapter<PircBotX> {
 	private static abstract class Command {
 		String name;
 		boolean adminRequired;
+		String help;
 
-		Command(String name, boolean adminRequired) {
+		Command(String name, boolean adminRequired, String help) {
 			this.name = name;
 			this.adminRequired = adminRequired;
+			this.help = help;
+		}
+
+		Command(String name, boolean adminRequired) {
+			this(name, adminRequired, "");
 		}
 
 		public abstract String run(CommandContext ctx, String args[]);
 
 		public String toString() {
 			return name;
+		}
+
+		public String getHelp() {
+			return help;
 		}
 
 		public boolean requiresGlobalAdmin() {
@@ -178,7 +188,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class VersionCommand extends Command {
 
-		VersionCommand() { super("version", false); }
+		VersionCommand() { super("version", false, "Tells the current version."); }
 
 		@Override
 		public String run(CommandContext ctx, String args[]) {
@@ -188,7 +198,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class PingCommand extends Command {
 
-		PingCommand() { super("ping", false); }
+		PingCommand() { super("ping", false, "Responds with 'pong', to check connection status."); }
 
 		@Override
 		public String run(CommandContext ctx, String args[]) {
@@ -199,6 +209,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 	private class InviteCommand extends Command {
 		
 		InviteCommand() { super("invite", false); }
+
+		@Override
+		public String getHelp() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(Color.color(ColorName.RED));
+			sb.append("ADMIN ONLY. ").append(Color.defaultColor());
+			sb.append("Invite user in holding channel without requiring them to answer the question\n");
+			sb.append("Parametres: List of nicks going to invite, sperated by space");
+			return sb.toString();
+		}
 
 		@Override
 		public String run(CommandContext ctx, String args[]) {
@@ -218,7 +238,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class InfoCommand extends Command {
 
-		InfoCommand() { super("info", true); }
+		InfoCommand() { super("info", true, "Report uptime and the number of entry in the inviter"); }
 
 		@Override
 		public String run(CommandContext ctx, String args[]) {
@@ -248,6 +268,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 		ResendCommand() { super("resend", false); }
 
 		@Override
+		public String getHelp() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(Color.color(ColorName.DARK_BLUE));
+			sb.append("Should use in holding channel OR PM only. ").append(Color.defaultColor());
+			sb.append("Send the question for the requesting user as message in channel, if used in channel.\n");
+			sb.append("Send in PM if the command is sent via PM");
+			return sb.toString();
+		}
+
+		@Override
 		public String run(CommandContext ctx, String args[]) {
 			for(JoinRecord record:inviter.pendingItems){
 				if(record.getNick().equalsIgnoreCase(ctx.user.getNick())){
@@ -260,48 +290,48 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class HelpCommand extends Command {
 
-		HelpCommand() { super("help", false); }
+		HelpCommand() { super("help", false, "Presents help message."); }
 
 		@Override
 		public String run(CommandContext ctx, String args[]) {
 			if(args.length == 1){
-				return "Available command: ping, invite, info, version, resend, nick";
-			}else if(args[1].equalsIgnoreCase("ping")){
-				return "Check is the bot alive. No parametres";
-			}else if(args[1].equalsIgnoreCase("invite")){
-				StringBuilder sb = new StringBuilder();
-				sb.append(Color.color(ColorName.RED));
-				sb.append("ADMIN ONLY. ").append(Color.defaultColor());
-				sb.append("Invite user in holding channel without requiring them to answer the question\n");
-				sb.append("Parametres: List of nicks going to invite, sperated by space");
-				return sb.toString();
-			}else if(args[1].equalsIgnoreCase("info")){
-				return "Report uptime and the number of entry in the inviter";
-			}else if(args[1].equalsIgnoreCase("version")){
-				return "Version of the bot";
-			}else if(args[1].equalsIgnoreCase("resend")){
-				StringBuilder sb = new StringBuilder();
-				sb.append(Color.color(ColorName.DARK_BLUE));
-				sb.append("Should use in holding channel OR PM only. ").append(Color.defaultColor());
-				sb.append("Send the question for the requesting user as message in channel, if used in channel.\n");
-				sb.append("Send in PM if the command is sent via PM");
-				return sb.toString();
-			}else if(args[1].equalsIgnoreCase("nick")){
-				StringBuilder sb = new StringBuilder();
-				sb.append(Color.color(ColorName.RED));
-				sb.append("Global admin only ").append(Color.defaultColor());
-				sb.append("Change the bot's nickname to the nockname given\n");
-				return sb.toString();
-			}else if(args[1].equalsIgnoreCase("whoami")){
-				return "Checks is the bot reconize you";
+				StringBuilder resp = new StringBuilder("Available commands: ");
+				boolean first = true;
+				for(int i = 0; i < cmds.length; i++) {
+					if(cmds[i].getHelp().length() != 0) {
+						if(!first)
+							resp.append(", ");
+						resp.append(cmds[i]);
+						first = false;
+					}
+				}
+				return resp.toString();
 			}
-			return "";
+
+			int i;
+			for(i = 0; i < cmds.length; i++)
+				if(args[1].equals(cmds[i].toString()))
+					break;
+
+			if(i == cmds.length || cmds[i].getHelp().length() == 0)
+				return "No help for '" + args[1] + "'";
+
+			return cmds[i].getHelp();
 		}
 	}
 
 	private class NickCommand extends Command {
 
 		NickCommand() { super("nick", true); }
+
+		@Override
+		public String getHelp() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(Color.color(ColorName.RED));
+			sb.append("Global admin only ").append(Color.defaultColor());
+			sb.append("Change the bot's nickname to the nickname given\n");
+			return sb.toString();
+		}
 
 		@Override
 		public String run(CommandContext ctx, String args[]) {
@@ -349,7 +379,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class WhoamiCommand extends Command {
 
-		WhoamiCommand() { super("whoami", false); }
+		WhoamiCommand() { super("whoami", false, "Tells if or how the bot recognizes you"); }
 
 		@Override
 		public String run(CommandContext ctx, String args[]) {
