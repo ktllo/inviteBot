@@ -23,45 +23,56 @@ public class Console extends ListenerAdapter<PircBotX> {
 	private Config config;
 	private Inviter inviter;
 	public Console(Config config,Inviter inviter) {
-		this.config=config;
+		this.config = config;
 		this.inviter = inviter;
 	}
 	
+	/**
+	 * Identifies messages that start with recognized prefixes, and shaves
+	 * off those prefixes, sending the resulting message to processMessage.
+	 * processMessage returns a response to send through the event object.
+	 * 
+	 * Message can be in the form of:
+	 *
+	 *   config.getEscape()
+	 *   "$botnickname"
+	 *   "$botnickname:"
+	 *   "$botnickname,"
+	 *
+	 * Each can be followed by an arbitrary number of spaces, which will
+	 * also be shaved off.
+	 */
 	public void onMessage(MessageEvent<PircBotX> event){
-		if(event.getMessage().startsWith(config.getEscape())){
-			String msg = processMessage(
-					event.getMessage().substring(config.getEscape().length()),
-					event.getUser(),
-					event.getBot(),
-					event.getChannel().getName());
-			if(msg.length()>0){
-				String [] lines = msg.split("\n");
-				for(String line:lines){
-					event.respond(line);
-				}
-			}
-		}else if(event.getMessage().toLowerCase().startsWith(event.getBot().getNick().toLowerCase())){
-			String cmd = event.getMessage().substring(event.getBot().getNick().length());
-			logger.debug("msg: {}", cmd);
-			while(cmd.startsWith(" ") || cmd.startsWith(":") || cmd.startsWith(",")){
-				logger.debug("Current msg: {}", cmd);
+
+		String cmd = "";
+		String msg = event.getMessage();
+		String botnickname = event.getBot().getNick();
+		String escapeSeq = config.getEscape();
+
+		if(msg.startsWith(escapeSeq))
+			cmd = msg.substring(escapeSeq.length());
+		else if(msg.toLowerCase().startsWith(botnickname.toLowerCase())){
+			cmd = msg.substring(botnickname.length());
+			if(cmd.startsWith(":") || cmd.startsWith(","))
 				cmd = cmd.substring(1);
-			}
-			logger.debug("msg: {}", cmd);
-			String msg = processMessage(
-					cmd,
-					event.getUser(),
-					event.getBot(),
-					event.getChannel().getName());
-			if(msg.length()>0){
-				String [] lines = msg.split("\n");
-				for(String line:lines){
-					event.respond(line);
-				}
+		} else
+			return;
+
+		cmd = cmd.trim();
+
+		String resp = processMessage(
+				cmd,
+				event.getUser(),
+				event.getBot(),
+				event.getChannel().getName());
+		if(resp.length()>0){
+			String [] lines = resp.split("\n");
+			for(String line:lines){
+				event.respond(line);
 			}
 		}
 	}
-		
+
 	public void onPrivateMessage(PrivateMessageEvent<PircBotX> event){
 		String msg = processMessage(event.getMessage(),
 				event.getUser(),
