@@ -1,7 +1,10 @@
 package org.leolo.ircbot.inviteBot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 import org.leolo.ircbot.inviteBot.Config.Channel;
 import org.leolo.ircbot.inviteBot.util.Color;
@@ -123,12 +126,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 		String cmdName = args[0].toLowerCase();
 
+		// Remove first entry in array
+		args = Arrays.asList(args).subList(1, args.length).toArray(new String[args.length - 1]);
+
 		for(int i = 0; i < cmds.length; i++)
 			if(cmds[i].toString().toLowerCase().equals(cmdName)) {
 				if(cmds[i].requiresGlobalAdmin() && !config.isGlobalAdmin(ctx.user))
 					return Color.color(ColorName.RED)+"ERROR: UNAUTHORIZED";
 						
-				return cmds[i].run(ctx, args);
+				cmds[i].main(ctx, args);
+				return ctx.getOutput();
 			}
 
 		return Color.color(ColorName.RED) + "ERROR: UNRECOGNIZED COMMAND '" + cmdName + "'";
@@ -138,11 +145,21 @@ public class Console extends ListenerAdapter<PircBotX> {
 		User user;
 		PircBotX bot;
 		String source;
+		PrintStream out;
+
+		private ByteArrayOutputStream buffer;
 
 		CommandContext(User user, PircBotX bot, String source) {
 			this.user = user;
 			this.bot = bot;
 			this.source = source;
+
+			buffer = new ByteArrayOutputStream();
+			out = new PrintStream(buffer, true);
+		}
+
+		public String getOutput() {
+			return buffer.toString();
 		}
 	}
 	
@@ -161,14 +178,26 @@ public class Console extends ListenerAdapter<PircBotX> {
 			this(name, adminRequired, "");
 		}
 
-		public abstract String run(CommandContext ctx, String args[]);
+		public abstract void main(CommandContext ctx, String args[]);
 
 		public String toString() {
 			return name;
 		}
 
-		public String getHelp() {
-			return help;
+		public void printHelp(PrintStream out) {
+			out.print(help);
+		}
+
+		public boolean hasHelp() {
+
+			if(help.length() != 0)
+				return true;
+
+			// This is a perfectly reasonable way to do this, because I say so
+			ByteArrayOutputStream testBuffer = new ByteArrayOutputStream();
+			PrintStream testOut = new PrintStream(testBuffer, true);
+			printHelp(testOut);
+			return testBuffer.size() != 0;
 		}
 
 		public boolean requiresGlobalAdmin() {
@@ -181,8 +210,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 		MooCommand() { super("moo", false); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
-			return "mooo";
+		public void main(CommandContext ctx, String args[]) {
+			ctx.out.print("mooo");
 		}
 	}
 
@@ -191,8 +220,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 		VersionCommand() { super("version", false, "Tells the current version."); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
-			return InviteBot.getName() + " version " + InviteBot.getVersion();
+		public void main(CommandContext ctx, String args[]) {
+			ctx.out.print(InviteBot.getName() + " version " + InviteBot.getVersion());
 		}
 	}
 
@@ -201,8 +230,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 		PingCommand() { super("ping", false, "Responds with 'pong', to check connection status."); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
-			return "pong";
+		public void main(CommandContext ctx, String args[]) {
+			ctx.out.print("pong");
 		}
 	}
 
@@ -211,19 +240,17 @@ public class Console extends ListenerAdapter<PircBotX> {
 		InviteCommand() { super("invite", false); }
 
 		@Override
-		public String getHelp() {
-			StringBuilder sb = new StringBuilder();
-			sb.append(Color.color(ColorName.RED));
-			sb.append("ADMIN ONLY. ").append(Color.defaultColor());
-			sb.append("Invite user in holding channel without requiring them to answer the question\n");
-			sb.append("Parametres: List of nicks going to invite, sperated by space");
-			return sb.toString();
+		public void printHelp(PrintStream out) {
+			out.print(Color.color(ColorName.RED));
+			out.print("ADMIN ONLY. " + Color.defaultColor());
+			out.print("Invite user in holding channel without requiring them to answer the question\n");
+			out.print("Parametres: List of nicks going to invite, sperated by space");
 		}
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 			logger.info(USAGE,ctx.user.getNick()+" inviting others");
-			for(int i=1;i<args.length;i++){
+			for(int i=0;i<args.length;i++){
 				try{
 					int count = inviter.invite(args[i], ctx.bot.sendIRC(), ctx.user, ctx.source);
 					logger.info(USAGE,"Invited {} to {} channels",args[i],""+count);
@@ -232,7 +259,6 @@ public class Console extends ListenerAdapter<PircBotX> {
 							+ "authroized to do so.");
 				}
 			}
-			return "";
 		}
 	}
 
@@ -241,25 +267,22 @@ public class Console extends ListenerAdapter<PircBotX> {
 		InfoCommand() { super("info", true, "Report uptime and the number of entry in the inviter"); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 			long uptime = System.currentTimeMillis() - inviter.START;
 			int upD = (int)(uptime/86400000);
 			int upH = ((int)(uptime/3600000))%24;
 			int upM = ((int)(uptime/60000))%60;
 			int upS = ((int)(uptime/1000))%60;
-			StringBuilder sb = new StringBuilder();
-			sb.append("Inviter size is "+inviter.pendingItems.size()+"\n");
-			sb.append("Uptime is ");
+			ctx.out.print("Inviter size is "+inviter.pendingItems.size()+"\n");
+			ctx.out.print("Uptime is ");
 			if( uptime > 86400000 )
-				sb.append(upD).append(" days ");
+				ctx.out.printf("%d days ", upD);
 			if( uptime > 3600000 )
-				sb.append(upH).append(" hours ");
+				ctx.out.printf("%d hours ", upH);
 			if( uptime > 60000 )
-				sb.append(upM).append(" minutes ");
+				ctx.out.printf("%d minutes ", upM);
 			if( uptime > 1000 )
-				sb.append(upS).append(" seconds ");
-			
-			return sb.toString();
+				ctx.out.printf("%d seconds ", upS);
 		}
 	}
 
@@ -268,23 +291,22 @@ public class Console extends ListenerAdapter<PircBotX> {
 		ResendCommand() { super("resend", false); }
 
 		@Override
-		public String getHelp() {
-			StringBuilder sb = new StringBuilder();
-			sb.append(Color.color(ColorName.DARK_BLUE));
-			sb.append("Should use in holding channel OR PM only. ").append(Color.defaultColor());
-			sb.append("Send the question for the requesting user as message in channel, if used in channel.\n");
-			sb.append("Send in PM if the command is sent via PM");
-			return sb.toString();
+		public void printHelp(PrintStream out) {
+			out.print(Color.color(ColorName.DARK_BLUE));
+			out.print("Should use in holding channel OR PM only. " + Color.defaultColor());
+			out.print("Send the question for the requesting user as message in channel, if used in channel.\n");
+			out.print("Send in PM if the command is sent via PM");
 		}
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 			for(JoinRecord record:inviter.pendingItems){
 				if(record.getNick().equalsIgnoreCase(ctx.user.getNick())){
-					return record.getQuestion().getQuestion();
+					ctx.out.print(record.getQuestion().getQuestion());
+					return;
 				}
 			}
-			return "Record not found. Please part and rejoin.";
+			ctx.out.print("Record not found. Please part and rejoin.");
 		}
 	}
 
@@ -293,30 +315,32 @@ public class Console extends ListenerAdapter<PircBotX> {
 		HelpCommand() { super("help", false, "Presents help message."); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
-			if(args.length == 1){
-				StringBuilder resp = new StringBuilder("Available commands: ");
+		public void main(CommandContext ctx, String args[]) {
+			if(args.length == 0){
+				ctx.out.print("Available commands: ");
 				boolean first = true;
 				for(int i = 0; i < cmds.length; i++) {
-					if(cmds[i].getHelp().length() != 0) {
+					if(cmds[i].hasHelp()) {
 						if(!first)
-							resp.append(", ");
-						resp.append(cmds[i]);
+							ctx.out.print(", ");
+						ctx.out.print(cmds[i]);
 						first = false;
 					}
 				}
-				return resp.toString();
+				return;
 			}
 
 			int i;
 			for(i = 0; i < cmds.length; i++)
-				if(args[1].equals(cmds[i].toString()))
+				if(args[0].equals(cmds[i].toString()))
 					break;
 
-			if(i == cmds.length || cmds[i].getHelp().length() == 0)
-				return "No help for '" + args[1] + "'";
+			if(i == cmds.length || !cmds[i].hasHelp()) {
+				ctx.out.print("No help for '" + args[0] + "'");
+				return;
+			}
 
-			return cmds[i].getHelp();
+			cmds[i].printHelp(ctx.out);
 		}
 	}
 
@@ -325,29 +349,28 @@ public class Console extends ListenerAdapter<PircBotX> {
 		NickCommand() { super("nick", true); }
 
 		@Override
-		public String getHelp() {
-			StringBuilder sb = new StringBuilder();
-			sb.append(Color.color(ColorName.RED));
-			sb.append("Global admin only ").append(Color.defaultColor());
-			sb.append("Change the bot's nickname to the nickname given\n");
-			return sb.toString();
+		public void printHelp(PrintStream out) {
+			out.print(Color.color(ColorName.RED));
+			out.print("Global admin only " + Color.defaultColor());
+			out.print("Change the bot's nickname to the nickname given\n");
 		}
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
-			if(args.length == 1){
-				return Color.color(ColorName.RED)+"ERROR: NICKNAME REQUIRED";
+		public void main(CommandContext ctx, String args[]) {
+			if(args.length == 0){
+				ctx.out.print(Color.color(ColorName.RED)+"ERROR: NICKNAME REQUIRED");
+				return;
 			}
-			ctx.bot.sendIRC().changeNick(args[1]);
+			ctx.bot.sendIRC().changeNick(args[0]);
 			try {
 				Thread.sleep(2500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if(!ctx.bot.getNick().equals(args[1])){
-				return Color.color(ColorName.RED)+"ERROR: Nick change failed";
+			if(!ctx.bot.getNick().equals(args[0])){
+				ctx.out.print(Color.color(ColorName.RED)+"ERROR: Nick change failed");
+				return;
 			}
-			return "";
 		}
 	}
 
@@ -356,14 +379,12 @@ public class Console extends ListenerAdapter<PircBotX> {
 		EchoCommand() { super("echo", false); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
-			StringBuilder sb = new StringBuilder();
-			for(int i = 1; i < args.length; i++) {
-				sb.append(args[i]);
+		public void main(CommandContext ctx, String args[]) {
+			for(int i = 0; i < args.length; i++) {
+				ctx.out.print(args[i]);
 				if(i + 1 != args.length)
-					sb.append(" ");
+					ctx.out.print(" ");
 			}
-			return sb.toString();
 		}
 	}
 
@@ -372,8 +393,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 		BackupCommand() { super("backup", true); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
-			return "backup as "+config.writeBackup();
+		public void main(CommandContext ctx, String args[]) {
+			ctx.out.print("backup as "+config.writeBackup());
 		}
 	}
 
@@ -382,9 +403,10 @@ public class Console extends ListenerAdapter<PircBotX> {
 		WhoamiCommand() { super("whoami", false, "Tells if or how the bot recognizes you"); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 			if(config.isGlobalAdmin(ctx.user)){
-				return "Global Admin";
+				ctx.out.print("Global Admin");
+				return;
 			}
 			ArrayList<String> ch = new ArrayList<>();
 			for(Channel c : config.getChannels()){
@@ -394,17 +416,15 @@ public class Console extends ListenerAdapter<PircBotX> {
 			}
 			if(ch.size() > 0){
 				Iterator<String> ich = ch.iterator();
-				StringBuilder sb = new StringBuilder();
-				sb.append("Local admin of: ");
+				ctx.out.print("Local admin of: ");
 				while(ich.hasNext()){
-					sb.append(ich.next());
-					if(ich.hasNext()){
-						sb.append(", ");
-					}
+					ctx.out.print(ich.next());
+					if(ich.hasNext())
+						ctx.out.print(", ");
 				}
-				return sb.toString();
+				return;
 			}
-			return "I don't reconize you";
+			ctx.out.print("I don't reconize you");
 		}
 	}
 
@@ -413,14 +433,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 		AddAdminCommand() { super("addadmin", true); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 			String resp = "";
 
-			if(args.length != 3)
-				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES";
+			if(args.length != 2) {
+				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				return;
+			}
 
-			String user = args[2];
-			String channel = args[1];
+			String user = args[1];
+			String channel = args[0];
 
 			for(Channel c:config.getChannels()){
 				if(channel.equals(c.getKey())){
@@ -431,7 +453,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				}
 			}
 
-			return resp;
+			ctx.out.print(resp);
 		}
 	}
 
@@ -440,24 +462,27 @@ public class Console extends ListenerAdapter<PircBotX> {
 		RemoveAdminCommand() { super("removeadmin", true); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 
-			if(args.length != 3)
-				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES";
+			if(args.length != 2) {
+				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				return;
+			}
 
-			String user = args[2];
-			String channel = args[1];
+			String user = args[1];
+			String channel = args[0];
 
 			for(Channel c:config.getChannels()){
 				if(channel.equals(c.getKey())){
 					c.removeAdmin(user);
 					logger.info(USAGE,"{} removed from admin list of {} by {} ",
 							user,channel,UserUtil.getUserHostmask(ctx.user));
-					return user + " removed from admin list";
+					ctx.out.print(user + " removed from admin list");
+					return;
 				}
 			}
 
-			return Color.color(ColorName.RED) + "ERROR: NOT AN ADMINISTRATOR, '" + user + "'";
+			ctx.out.print(Color.color(ColorName.RED) + "ERROR: NOT AN ADMINISTRATOR, '" + user + "'");
 		}
 	}
 
@@ -466,26 +491,23 @@ public class Console extends ListenerAdapter<PircBotX> {
 		ListAdminCommand() { super("listadmin", true); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 
-			if(args.length != 2)
-				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES";
-
-			for(Channel c:config.getChannels()){
-				if(args[1].equals(c.getKey())){
-					Iterator<String> i = c.getAdmins().iterator();
-					StringBuilder sb = new StringBuilder();
-					while(i.hasNext()){
-						sb.append(i.next());
-						if(i.hasNext()){
-							sb.append(" ,");
-						}
-					}
-					return sb.toString();
-				}
+			if(args.length != 1) {
+				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				return;
 			}
 
-			return "";
+			for(Channel c:config.getChannels()){
+				if(args[0].equals(c.getKey())){
+					Iterator<String> i = c.getAdmins().iterator();
+					while(i.hasNext()){
+						ctx.out.print(i.next());
+						if(i.hasNext())
+							ctx.out.print(", ");
+					}
+				}
+			}
 		}
 	}
 
@@ -494,14 +516,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 		AddExemptCommand() { super("addexempt", true); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 			String resp = "";
 
-			if(args.length != 3)
-				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES";
+			if(args.length != 2) {
+				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				return;
+			}
 
-			String user = args[2];
-			String channel = args[1];
+			String user = args[1];
+			String channel = args[0];
 
 			for(Channel c:config.getChannels()){
 				if(channel.equals(c.getKey())){
@@ -512,7 +536,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				}
 			}
 
-			return resp;
+			ctx.out.print(resp);
 		}
 	}
 
@@ -521,14 +545,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 		RemoveExemptCommand() { super("removeexempt", true); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 			String resp = "";
 
-			if(args.length != 3)
-				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES";
+			if(args.length != 2) {
+				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				return;
+			}
 
-			String user = args[2];
-			String channel = args[1];
+			String user = args[1];
+			String channel = args[0];
 
 			for(Channel c:config.getChannels()){
 				if(channel.equals(c.getKey())){
@@ -539,7 +565,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				}
 			}
 
-			return resp;
+			ctx.out.print(resp);
 		}
 	}
 
@@ -548,26 +574,24 @@ public class Console extends ListenerAdapter<PircBotX> {
 		ListExemptCommand() { super("listexempt", true); }
 
 		@Override
-		public String run(CommandContext ctx, String args[]) {
+		public void main(CommandContext ctx, String args[]) {
 
-			if(args.length != 2)
-				return Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES";
-
-			for(Channel c:config.getChannels()){
-				if(args[1].equals(c.getKey())){
-					Iterator<String> i = c.getExemptMask().iterator();
-					StringBuilder sb = new StringBuilder();
-					while(i.hasNext()){
-						sb.append(i.next());
-						if(i.hasNext()){
-							sb.append(" ,");
-						}
-					}
-					return sb.toString();
-				}
+			if(args.length != 1) {
+				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				return;
 			}
 
-			return "";
+			for(Channel c:config.getChannels()){
+				if(args[0].equals(c.getKey())){
+					Iterator<String> i = c.getExemptMask().iterator();
+					while(i.hasNext()){
+						ctx.out.print(i.next());
+						if(i.hasNext())
+							ctx.out.print(", ");
+					}
+					return;
+				}
+			}
 		}
 	}
 
