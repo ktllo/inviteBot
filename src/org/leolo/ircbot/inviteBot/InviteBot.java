@@ -99,7 +99,7 @@ public class InviteBot{
 		);
 	}
 
-	private static Config parseArguments(String args[]) throws IOException, PropertyMapperException {
+	private static Config parseArguments(String args[]) throws IOException, ConfigException {
 		Help help = getHelpMessage();
 		Lexer lex = new Lexer(args);
 		String configFilename = null;
@@ -154,9 +154,22 @@ public class InviteBot{
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void main(String [] args) throws IOException, PropertyMapperException{
-		properties = loadResourceProperties("/application.properties");
-		Config config = parseArguments(args);
+	public static void main(String [] args){
+		Config config = null;
+
+		try {
+			properties = loadResourceProperties("/application.properties");
+			config = parseArguments(args);
+		} catch(IOException e) {
+			System.err.println("Failed to initialize InviteBot:");
+			System.err.println(e.getMessage());
+			System.exit(1);
+		} catch(ConfigException e) {
+			System.err.println("Configuration error:");
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+
 		Inviter inviter = new Inviter(config);
 		Builder b = new Configuration.Builder()
 		.setName(config.getNick()) //Nick of the bot.
@@ -177,6 +190,9 @@ public class InviteBot{
 		try {
 			myBot.startBot();
 		} catch (IrcException e) {
+			logger.error(e.toString(), e);
+			e.printStackTrace();
+		} catch (IOException e) {
 			logger.error(e.toString(), e);
 			e.printStackTrace();
 		}

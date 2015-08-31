@@ -1,7 +1,11 @@
 package org.leolo.ircbot.inviteBot;
 
-import org.leolo.ircbot.inviteBot.util.Color;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.leolo.ircbot.inviteBot.Config.Channel;
 import org.leolo.ircbot.inviteBot.util.ColorName;
+import org.leolo.ircbot.inviteBot.util.Font;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.hooks.*;
@@ -63,6 +67,11 @@ public class Console extends ListenerAdapter<PircBotX> {
 				event.getUser(),
 				event.getBot(),
 				event.getUser().getNick());
+		if(msg.length()==0 && config.isGlobalAdmin(event.getUser())){
+			msg = processMessage(event.getMessage(),
+					event.getUser(),
+					event.getBot());
+		}
 		if(msg.length()>0){
 			String [] lines = msg.split("\n");
 			for(String line:lines){
@@ -92,7 +101,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				}
 			}
 		}else if(message.startsWith("info")){
-			//if(config.isGlobalAdmin(user) || config.isListenChannel(source)){
+			if(config.isAdmin(user)){
 				long uptime = System.currentTimeMillis() - inviter.START;
 				int upD = (int)(uptime/86400000);
 				int upH = ((int)(uptime/3600000))%24;
@@ -111,7 +120,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 					sb.append(upS).append(" seconds ");
 				
 				return sb.toString();
-			//}
+			}
 		}else if(message.startsWith("version")){
 			return InviteBot.getName() + " version " + InviteBot.getVersion();
 		}else if(message.startsWith("resend")){
@@ -129,8 +138,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 				return "Check is the bot alive. No parametres";
 			}else if(cmd[1].equalsIgnoreCase("invite")){
 				StringBuilder sb = new StringBuilder();
-				sb.append(Color.color(ColorName.RED));
-				sb.append("ADMIN ONLY. ").append(Color.defaultColor());
+				sb.append(Font.color(ColorName.RED));
+				sb.append("ADMIN ONLY. ").append(Font.defaultColor());
 				sb.append("Invite user in holding channel without requiring them to answer the question\n");
 				sb.append("Parametres: List of nicks going to invite, sperated by space");
 				return sb.toString();
@@ -140,22 +149,24 @@ public class Console extends ListenerAdapter<PircBotX> {
 				return "Version of the bot";
 			}else if(cmd[1].equalsIgnoreCase("resend")){
 				StringBuilder sb = new StringBuilder();
-				sb.append(Color.color(ColorName.DARK_BLUE));
-				sb.append("Should use in holding channel OR PM only. ").append(Color.defaultColor());
+				sb.append(Font.color(ColorName.DARK_BLUE));
+				sb.append("Should use in holding channel OR PM only. ").append(Font.defaultColor());
 				sb.append("Send the question for the requesting user as message in channel, if used in channel.\n");
 				sb.append("Send in PM if the command is sent via PM");
 				return sb.toString();
 			}else if(cmd[1].equalsIgnoreCase("nick")){
 				StringBuilder sb = new StringBuilder();
-				sb.append(Color.color(ColorName.RED));
-				sb.append("Global admin only ").append(Color.defaultColor());
-				sb.append("Change the bot's nickname to the nockname given\n");
+				sb.append(Font.color(ColorName.RED));
+				sb.append("Global admin only ").append(Font.defaultColor());
+				sb.append("Change the bot's nickname to the nickname given\n");
 				return sb.toString();
+			}else if(cmd[1].equalsIgnoreCase("whoami")){
+				return "Checks is the bot reconize you";
 			}
 		}else if(message.startsWith("nick")){
 			String [] cmd = rmessage.split(" ");
 			if(cmd.length == 1){
-				return Color.color(ColorName.RED)+"ERROR: NICKNAME REQUIRED";
+				return Font.color(ColorName.RED)+"ERROR: NICKNAME REQUIRED";
 			}
 			if(config.isGlobalAdmin(user)){
 				bot.sendIRC().changeNick(cmd[1]);
@@ -165,18 +176,143 @@ public class Console extends ListenerAdapter<PircBotX> {
 					e.printStackTrace();
 				}
 				if(!bot.getNick().equals(cmd[1])){
-					return Color.color(ColorName.RED)+"ERROR: Nick change failed";
+					return Font.color(ColorName.RED)+"ERROR: Nick change failed";
 				}
 			}else{
 				logger.warn(USAGE, "User {}!{}@{} tried to change bot's nick but unauthorized", user.getNick(),user.getLogin(),user.getHostmask());
-				return Color.color(ColorName.RED)+"ERROR: UNAUTHORIZED";
+				return Font.color(ColorName.RED)+"ERROR: UNAUTHORIZED";
 			}
 		}else if(message.startsWith("backup")){
 			if(config.isGlobalAdmin(user)){
 				return "backup as "+config.writeBackup();
 			}
+		}else if(message.startsWith("moo")){
+			return "moooo";
+		}else if(message.startsWith("whoami")){
+			if(config.isGlobalAdmin(user)){
+				return "Global Admin";
+			}
+			ArrayList<String> ch = new ArrayList<>();
+			for(Channel c : config.getChannels()){
+				if(c.isAdmin(user)){
+					ch.add(c.getChannelName());
+				}
+			}
+			if(ch.size() > 0){
+				Iterator<String> ich = ch.iterator();
+				StringBuilder sb = new StringBuilder();
+				sb.append("Local admin of: ");
+				while(ich.hasNext()){
+					sb.append(ich.next());
+					if(ich.hasNext()){
+						sb.append(", ");
+					}
+				}
+				return sb.toString();
+			}
+			return "I don't reconize you";
 		}
 		return "";
 	}
-
+	
+	private String processMessage(String message,User user,PircBotX bot){
+		if(config.isGlobalAdmin(user)){
+			String lmsg = message.toLowerCase();
+			String [] args = lmsg.split(" ");
+			String rmsg = null;
+			if(args[0].equals("addadmin") || args[0].equals("removeadmin") ||
+					args[0].equals("listadmin") || args[0].equals("listexempt") ||
+					args[0].equals("addexempt") || args[0].equals("removeexempt"))
+			if(
+					((args[0].equals("addadmin") || args[0].equals("removeadmin") ||
+					args[0].equals("addexempt") || args[0].equals("removeexempt"))
+					&& args.length != 3 ) || 
+					(
+							(args[0].equals("listadmin") || args[0].equals("listexempt")) &&
+							args.length != 2
+					)){
+				return Font.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRE";
+			}
+			String backupName = config.writeBackup();
+			switch(args[0]){
+			case "addadmin":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.addAdmin(args[2]);
+						logger.info(USAGE,"{} added to admin list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " added to admin list";
+					}
+				}
+				break;
+			case "removeadmin":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.removeAdmin(args[2]);
+						logger.info(USAGE,"{} removed from admin list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " removed from admin list";
+					}
+				}
+				break;
+			case "addexempt":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.addExempt(args[2]);
+						logger.info(USAGE,"{} added to exempt list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " added to exempt list";
+					}
+				}
+				break;
+			case "removeexempt":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						c.removeExempt(args[2]);
+						logger.info(USAGE,"{} removed from exempt list of {} by {}!{}@{} ",
+								args[2],args[1],user.getNick(),user.getLogin(),user.getHostmask());
+						rmsg = args[2] + " removed from list";
+					}
+				}
+				break;
+			case "listadmin":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						Iterator<String> i = c.getAdmins().iterator();
+						StringBuilder sb = new StringBuilder();
+						while(i.hasNext()){
+							sb.append(i.next());
+							if(i.hasNext()){
+								sb.append(" ,");
+							}
+						}
+						return sb.toString();
+					}
+				}
+			case "listexempt":
+				for(Channel c:config.getChannels()){
+					if(args[1].equals(c.getKey())){
+						Iterator<String> i = c.getExemptMask().iterator();
+						StringBuilder sb = new StringBuilder();
+						while(i.hasNext()){
+							sb.append(i.next());
+							if(i.hasNext()){
+								sb.append(" ,");
+							}
+						}
+						return sb.toString();
+					}
+				}
+			default:
+				return "";
+			}
+			if(rmsg==null){
+				return "Undefined key";
+			}
+			config.write();
+			return "Old config backed up as"+backupName+"\n"+rmsg;
+		}
+		return "";
+	}
+	
 }
