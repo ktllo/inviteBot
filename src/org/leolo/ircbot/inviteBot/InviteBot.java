@@ -166,7 +166,7 @@ public class InviteBot{
 		.addListener(inviter)
 		.setAutoReconnect(true)
 		.addListener(new Console(config,inviter));
-		System.out.println(config.getDatabaseManager().getMemberDAO());
+		System.out.println(config.getDatabaseManager().getMemberDAO().findMember(null));
 		System.exit(0);
 		if(config.isSSL()){
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
