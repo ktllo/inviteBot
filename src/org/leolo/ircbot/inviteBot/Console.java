@@ -7,9 +7,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import org.leolo.ircbot.inviteBot.Config.Channel;
-import org.leolo.ircbot.inviteBot.util.Color;
 import org.leolo.ircbot.inviteBot.util.ColorName;
 import org.leolo.ircbot.inviteBot.util.UserUtil;
+import org.leolo.ircbot.inviteBot.util.Font;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.hooks.*;
@@ -129,15 +129,15 @@ public class Console extends ListenerAdapter<PircBotX> {
 		for(int i = 0; i < cmds.length; i++)
 			if(cmds[i].toString().toLowerCase().equals(cmdName)) {
 				if(cmds[i].requiresGlobalAdmin() && !config.isGlobalAdmin(ctx.user))
-					return Color.color(ColorName.RED)+"ERROR: UNAUTHORIZED";
+					return Font.color(ColorName.RED)+"ERROR: UNAUTHORIZED";
 				if(cmds[i].isPmOnly() && !pm)
-					return Color.color(ColorName.RED)+"ERROR: COMMAND CAN ONLY BE USED THROUGH PRIVATE MESSAGES";
+					return Font.color(ColorName.RED)+"ERROR: COMMAND CAN ONLY BE USED THROUGH PRIVATE MESSAGES";
 						
 				cmds[i].main(ctx, args);
 				return ctx.getOutput();
 			}
 
-		return Color.color(ColorName.RED) + "ERROR: UNRECOGNIZED COMMAND '" + cmdName + "'";
+		return Font.color(ColorName.RED) + "ERROR: UNRECOGNIZED COMMAND '" + cmdName + "'";
 	}
 
 	private static class CommandContext {
@@ -184,7 +184,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 		}
 
 		Command(String name, boolean adminRequired, boolean pmOnly) {
-			this(name, adminRequired, false, "");
+			this(name, adminRequired, pmOnly, "");
 		}
 
 		public abstract void main(CommandContext ctx, String args[]);
@@ -264,8 +264,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 		@Override
 		public void printHelp(PrintStream out) {
-			out.print(Color.color(ColorName.RED));
-			out.print("ADMIN ONLY. " + Color.defaultColor());
+			out.print(Font.color(ColorName.RED));
+			out.print("ADMIN ONLY. " + Font.defaultColor());
 			out.print("Invite user in holding channel without requiring them to answer the question\n");
 			out.print("Parametres: List of nicks going to invite, sperated by space");
 		}
@@ -315,8 +315,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 		@Override
 		public void printHelp(PrintStream out) {
-			out.print(Color.color(ColorName.DARK_BLUE));
-			out.print("Should use in holding channel OR PM only. " + Color.defaultColor());
+			out.print(Font.color(ColorName.DARK_BLUE));
+			out.print("Should use in holding channel OR PM only. " + Font.defaultColor());
 			out.print("Send the question for the requesting user as message in channel, if used in channel.\n");
 			out.print("Send in PM if the command is sent via PM");
 		}
@@ -373,15 +373,15 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 		@Override
 		public void printHelp(PrintStream out) {
-			out.print(Color.color(ColorName.RED));
-			out.print("Global admin only " + Color.defaultColor());
+			out.print(Font.color(ColorName.RED));
+			out.print("Global admin only " + Font.defaultColor());
 			out.print("Change the bot's nickname to the nickname given\n");
 		}
 
 		@Override
 		public void main(CommandContext ctx, String args[]) {
 			if(args.length == 0){
-				ctx.out.print(Color.color(ColorName.RED)+"ERROR: NICKNAME REQUIRED");
+				ctx.out.print(Font.color(ColorName.RED)+"ERROR: NICKNAME REQUIRED");
 				return;
 			}
 			ctx.bot.sendIRC().changeNick(args[0]);
@@ -391,7 +391,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				e.printStackTrace();
 			}
 			if(!ctx.bot.getNick().equals(args[0])){
-				ctx.out.print(Color.color(ColorName.RED)+"ERROR: Nick change failed");
+				ctx.out.print(Font.color(ColorName.RED)+"ERROR: Nick change failed");
 				return;
 			}
 		}
@@ -453,14 +453,14 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class AddAdminCommand extends Command {
 
-		AddAdminCommand() { super("addadmin", true); }
+		AddAdminCommand() { super("addadmin", true, true); }
 
 		@Override
 		public void main(CommandContext ctx, String args[]) {
 			String resp = "";
 
 			if(args.length != 2) {
-				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				ctx.out.print(Font.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
 				return;
 			}
 
@@ -482,13 +482,13 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class RemoveAdminCommand extends Command {
 
-		RemoveAdminCommand() { super("removeadmin", true); }
+		RemoveAdminCommand() { super("removeadmin", true, true); }
 
 		@Override
 		public void main(CommandContext ctx, String args[]) {
 
 			if(args.length != 2) {
-				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				ctx.out.print(Font.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
 				return;
 			}
 
@@ -505,19 +505,19 @@ public class Console extends ListenerAdapter<PircBotX> {
 				}
 			}
 
-			ctx.out.print(Color.color(ColorName.RED) + "ERROR: NOT AN ADMINISTRATOR, '" + user + "'");
+			ctx.out.print(Font.color(ColorName.RED) + "ERROR: NOT AN ADMINISTRATOR, '" + user + "'");
 		}
 	}
 
 	private class ListAdminCommand extends Command {
 
-		ListAdminCommand() { super("listadmin", true); }
+		ListAdminCommand() { super("listadmin", true, true); }
 
 		@Override
 		public void main(CommandContext ctx, String args[]) {
 
 			if(args.length != 1) {
-				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				ctx.out.print(Font.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
 				return;
 			}
 
@@ -536,14 +536,14 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class AddExemptCommand extends Command {
 
-		AddExemptCommand() { super("addexempt", true); }
+		AddExemptCommand() { super("addexempt", true, true); }
 
 		@Override
 		public void main(CommandContext ctx, String args[]) {
 			String resp = "";
 
 			if(args.length != 2) {
-				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				ctx.out.print(Font.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
 				return;
 			}
 
@@ -565,14 +565,14 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class RemoveExemptCommand extends Command {
 
-		RemoveExemptCommand() { super("removeexempt", true); }
+		RemoveExemptCommand() { super("removeexempt", true, true); }
 
 		@Override
 		public void main(CommandContext ctx, String args[]) {
 			String resp = "";
 
 			if(args.length != 2) {
-				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				ctx.out.print(Font.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
 				return;
 			}
 
@@ -594,13 +594,13 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private class ListExemptCommand extends Command {
 
-		ListExemptCommand() { super("listexempt", true); }
+		ListExemptCommand() { super("listexempt", true, true); }
 
 		@Override
 		public void main(CommandContext ctx, String args[]) {
 
 			if(args.length != 1) {
-				ctx.out.print(Color.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
+				ctx.out.print(Font.color(ColorName.RED)+"ERROR: INCORRECT NUMBER OF PARAMETRES");
 				return;
 			}
 

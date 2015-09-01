@@ -1,5 +1,11 @@
 package org.leolo.ircbot.inviteBot.util;
 
+/**
+ * 
+ * @author leolo
+ * @see Font
+ */
+@Deprecated
 public class Color {
 	private static final String ESCAPE = "\u0003";
 	
