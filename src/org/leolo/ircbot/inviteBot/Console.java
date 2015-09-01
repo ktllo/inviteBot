@@ -100,6 +100,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 		new MooCommand(),
 		new VersionCommand(),
 		new PingCommand(),
+		new PongCommand(),
 		new InviteCommand(),
 		new NickCommand(),
 		new InfoCommand(),
@@ -232,6 +233,16 @@ public class Console extends ListenerAdapter<PircBotX> {
 		@Override
 		public void main(CommandContext ctx, String args[]) {
 			ctx.out.print("pong");
+		}
+	}
+
+	private class PongCommand extends Command {
+
+		PongCommand() { super("pong", false); }
+
+		@Override
+		public void main(CommandContext ctx, String args[]) {
+			ctx.out.print("ping");
 		}
 	}
 
