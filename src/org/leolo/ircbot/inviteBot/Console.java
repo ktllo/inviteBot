@@ -68,7 +68,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 				cmd,
 				event.getUser(),
 				event.getBot(),
-				event.getChannel().getName());
+				event.getChannel().getName(),
+				false);
 		if(resp.length()>0){
 			String [] lines = resp.split("\n");
 			for(String line:lines){
@@ -81,13 +82,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 		String msg = processMessage(event.getMessage(),
 				event.getUser(),
 				event.getBot(),
-				event.getUser().getNick());
-		if(msg.length()==0 && config.isGlobalAdmin(event.getUser())){
-			msg = processMessage(event.getMessage(),
-					event.getUser(),
-					event.getBot(),
-					"");
-		}
+				event.getUser().getNick(),
+				true);
 		if(msg.length()>0){
 			String [] lines = msg.split("\n");
 			for(String line:lines){
@@ -118,7 +114,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 		new ListExemptCommand(),
 	};
 
-	private String processMessage(String message,User user,PircBotX bot,String source){
+	private String processMessage(String message,User user,PircBotX bot,String source, boolean pm){
 		CommandContext ctx = new CommandContext(user, bot, source);
 
 		String args[] = message.split(" +");
@@ -134,6 +130,8 @@ public class Console extends ListenerAdapter<PircBotX> {
 			if(cmds[i].toString().toLowerCase().equals(cmdName)) {
 				if(cmds[i].requiresGlobalAdmin() && !config.isGlobalAdmin(ctx.user))
 					return Color.color(ColorName.RED)+"ERROR: UNAUTHORIZED";
+				if(cmds[i].isPmOnly() && !pm)
+					return Color.color(ColorName.RED)+"ERROR: COMMAND CAN ONLY BE USED THROUGH PRIVATE MESSAGES";
 						
 				cmds[i].main(ctx, args);
 				return ctx.getOutput();
@@ -167,16 +165,26 @@ public class Console extends ListenerAdapter<PircBotX> {
 	private static abstract class Command {
 		String name;
 		boolean adminRequired;
+		boolean pmOnly;
 		String help;
 
 		Command(String name, boolean adminRequired, String help) {
-			this.name = name;
-			this.adminRequired = adminRequired;
-			this.help = help;
+			this(name, adminRequired, false, help);
 		}
 
 		Command(String name, boolean adminRequired) {
-			this(name, adminRequired, "");
+			this(name, adminRequired, false, "");
+		}
+
+		Command(String name, boolean adminRequired, boolean pmOnly, String help) {
+			this.name = name;
+			this.adminRequired = adminRequired;
+			this.pmOnly = pmOnly;
+			this.help = help;
+		}
+
+		Command(String name, boolean adminRequired, boolean pmOnly) {
+			this(name, adminRequired, false, "");
 		}
 
 		public abstract void main(CommandContext ctx, String args[]);
@@ -203,6 +211,10 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 		public boolean requiresGlobalAdmin() {
 			return adminRequired;
+		}
+
+		public boolean isPmOnly() {
+			return pmOnly;
 		}
 	}
 
