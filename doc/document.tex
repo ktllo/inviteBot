@@ -17,12 +17,15 @@
 
 \title{User guide to invitebot}
 \author{LO Kam Tao Leo\\\href{mailto:leolo@leolo.org}{leolo@leolo.org}}
-\date{\today}
+\date{August 2015}
+\setcounter{tocdepth}{2}
 \begin{document}
 	\maketitle
 \tableofcontents\newpage
 \section{Preface}
 invitebot is an IRC bot developed to helps stopping spambot attacks. It helps by the main channel forwarding user to a holding channel, such user will receives an challenge via notice. If the user solves the challenge, the user will be invited to the main channel.
+
+This document is for invitebot version 1.1. Most function are also available in version 1.0.
 \subsection{Bug tracker}
 The bug tracker for this project is the GitHub one, at \url{https://github.com/ktllo/inviteBot}.
 \section{Downloading invitebot}
@@ -53,7 +56,7 @@ The setting here are critical to the connection with the IRC network. If you are
 \paragraph{ident} The ident which will be sent to the server. The \texttt{identd} server \textbf{WILL NOT} be started. 
 \subsection{Global Settings}
 The setting here will apply to ALL channel set the bot operates in.
-\paragraph{escape} A short string used to indicate bot command. The bot will consider it a command if the message sent via channel that bot is in is begin with escape string.
+\paragraph{escape} \label{sec:conf:escape}A short string used to indicate bot command. The bot will consider it a command if the message sent via channel that bot is in is begin with escape string.
 \paragraph{welcome} A short welcome message that will sent via notice upon user join ``holding channel''. \texttt{\%t} will be escaped into the name of the ``target channel'' that the user will ab able to join.
 \paragraph{admin} A comma separated list of hostmask (\textit{nick!ident@host}) what the user are consider as global administrator. Strictly speaking, this setting is optional, but you should at least states one global administrator.
 \paragraph{key} A comma separated list of identifier, used to identify the channel set, which will be used to in channel settings. 
@@ -64,4 +67,22 @@ All setting parameter in this section will preceded with the channel set key, an
 \paragraph{listen} The ``holding channel''. The holding channel MUST be unique among other holding channel listed. You should manually set redirection user from  ``target channel'' to ``holding channel''. If the bot is operator in this channel, the bot will remove user from this channel when the user join the ``target channel''.
 \paragraph{report} Where the bot will reports  join and invite
 \paragraph{admin} A comma separated list of hostmask (\textit{nick!ident@host}) what the user are consider as local administrator. All global administrator are considered as local administrator in all channel set. Unlike it global administrator, this value are optional.
+\section{Bot Commands}
+To issue bot commands, unless otherwise specified, can be via private message or message sent in \textbf{ANY} channel the bot is in. If sent in channel, The command \textbf{MUST} preceded with the bot name, followed by one or more space, comma, or colon, \textbf{OR} preceded with the escape character set in section~\ref{sec:conf:escape}. Certain command are only available via private messages only.
+
+All the bot command are case insensitive, although the parameters may be case sensitive.
+\subsection{Global Command}
+Commands in this section are available to everyone on the network.
+\subsubsection{ping}
+This command is to check is the bot alive or not. No parameter is required. The bot will reply ``pong'' upon receiving this command.
+\subsubsection{whoami}
+This command is used to check is the bot recognize the user who issues this command.
+
+If the bot doesn't recognize the user, it will reply that the bot doesn't recognize the user.
+
+If the user is global administrator, even when the user is also listed as local channel for certain channel set, the bot will \textbf{ONLY} reply that the user is global administrator.
+
+If the user is local administrator in one or more channel, the bot will reply that the user is local administrator, together with a list of ``target channel'' of that channel set.
+\section{Glob implementation}
+This bot uses a restricted version of glob. Which only replace * with 0 or more character. The bot will attempt to handle the glob expression in a fast way, which will handle few special case independently.
 \end{document}
