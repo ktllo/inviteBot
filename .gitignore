@@ -4,3 +4,4 @@ test/bin
 *~
 *.log
 .*
+*.db/*

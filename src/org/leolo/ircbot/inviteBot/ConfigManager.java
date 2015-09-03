@@ -2,10 +2,14 @@ package org.leolo.ircbot.inviteBot;
 
 import java.util.TreeMap;
 
-public class ConfigManager {
+public class ConfigManager implements Cache{
 	
 	private static TreeMap<String,String> cache;
 	Config config;
+	
+	static{
+		cache = new TreeMap<>();
+	}
 	
 	public void invalidateCache(){
 		synchronized(this){
