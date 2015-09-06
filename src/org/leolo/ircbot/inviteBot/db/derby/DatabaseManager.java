@@ -56,7 +56,7 @@ public class DatabaseManager implements org.leolo.ircbot.inviteBot.DatabaseManag
 		Connection conn = null;
 		DatabaseMetaData dbmd = null;
 		ResultSet rs = null;
-		Statement stmt;
+		Statement stmt = null;
 		try{
 			conn = datasource.getConnection();
 			dbmd = conn.getMetaData();
@@ -69,12 +69,39 @@ public class DatabaseManager implements org.leolo.ircbot.inviteBot.DatabaseManag
 				stmt.execute("CREATE TABLE CONFIG("
 						+ "keyName VARCHAR(255) PRIMARY KEY,"
 						+ "keyValue LONG VARCHAR NOT NULL)");
+				stmt.execute("CREATE TABLE MEMBER("
+						+ "member_id INT PRIMARY KEY,"
+						+ "username VARCHAR(255) UNIQUE NOT NULL,"
+						+ "password VARCHAR(255) NOT NULL)");
+				stmt.execute("CREATE TABLE member_hostmask("+
+						"member_id INT NOT NULL,"+
+					    "hostmask_id INT NOT NULL,"+
+					    "hostmask VARCHAR(512),"+
+					    "PRIMARY KEY(member_id,hostmask_id)"+
+						")");
+				//Set a schema version, for future DB schema upgrade
 				stmt.execute("INSERT INTO CONFIG (keyName,keyValue) VALUES (\'SCHEMA_VERSION\',\'1\')");
 			}
 		}catch(SQLException sqle){
 			logger.error("SQLException",sqle);
 		}finally{
-			
+			try{
+				conn.commit();
+				if(stmt!=null){
+					stmt.close();
+					stmt = null;
+				}
+				if(rs!=null){
+					rs.close();
+					rs = null;
+				}
+				if(conn!=null){
+					conn.close();
+					conn = null;
+				}
+			}catch(SQLException sqle){
+				logger.error("SQLException",sqle);
+			}
 		}
 	}
 

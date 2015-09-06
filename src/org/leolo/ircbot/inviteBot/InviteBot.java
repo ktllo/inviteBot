@@ -169,7 +169,8 @@ public class InviteBot{
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}
-
+		System.out.println(config.getDatabaseManager().getConfigDAO().get("SCHEMA_VERSION"));
+		System.exit(0);
 		Inviter inviter = new Inviter(config);
 		Builder b = new Configuration.Builder()
 		.setName(config.getNick()) //Nick of the bot.
@@ -179,8 +180,8 @@ public class InviteBot{
 		.addListener(inviter)
 		.setAutoReconnect(true)
 		.addListener(new Console(config,inviter));
-		System.out.println(config.getDatabaseManager().getMemberDAO().findMember(null));
-		System.exit(0);
+//		System.out.println(config.getDatabaseManager().getMemberDAO().findMember(null));
+//		System.exit(0);
 		if(config.isSSL()){
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
 			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.getUsername(), config.getPassword()));

@@ -1,19 +1,15 @@
 package org.leolo.ircbot.inviteBot.model;
 
+import org.leolo.salt.HashType;
+import org.leolo.salt.Salt;
+
 public class Member {
 	
-	public enum PasswordMode{
-		EMPTY,
-		PLAINTEXT,
-		CIPHERTEXT,
-		PLAIN_HASH,
-		SALTED_HASH;
-	}
+	
 	
 	private long userId;
 	private String userName;
 	private String password;
-	private PasswordMode passwordMode;
 	private boolean enabled;
 	
 	public long getUserId() {
@@ -28,17 +24,11 @@ public class Member {
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
-	public String getPassword() {
-		return password;
+	public boolean verifyPassword(String password){
+		return Salt.verify(password, this.password);
 	}
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	public PasswordMode getPasswordMode() {
-		return passwordMode;
-	}
-	public void setPasswordMode(PasswordMode passwordMode) {
-		this.passwordMode = passwordMode;
+	public void updatePassword(String password){
+		this.password = Salt.createHash(password, HashType.HMAC_SHA512);
 	}
 	public boolean isEnabled() {
 		return enabled;
