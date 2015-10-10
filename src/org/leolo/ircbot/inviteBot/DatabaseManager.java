@@ -8,6 +8,8 @@ public interface DatabaseManager {
 	
 	MemberDAO getMemberDAO();
 	ConfigDAO getConfigDAO();
+	RoleDAO getRoleDAO();
+	PermissionDAO getPermissionDAO();
 	
 	int getModelLevel();
 }

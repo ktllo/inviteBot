@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.leolo.ircbot.inviteBot.db.ConfigDAO;
 import org.leolo.ircbot.inviteBot.db.MemberDAO;
+import org.leolo.ircbot.inviteBot.db.PermissionDAO;
+import org.leolo.ircbot.inviteBot.db.RoleDAO;
 import org.slf4j.LoggerFactory;
 
 public class DatabaseManager implements org.leolo.ircbot.inviteBot.DatabaseManager {
@@ -49,6 +51,22 @@ public class DatabaseManager implements org.leolo.ircbot.inviteBot.DatabaseManag
 			makeConnection();
 		}
 		return new org.leolo.ircbot.inviteBot.db.mysql.ConfigDAO(datasource);
+	}
+
+	@Override
+	public RoleDAO getRoleDAO() {
+		if(datasource == null){
+			makeConnection();
+		}
+		return null;
+	}
+
+	@Override
+	public PermissionDAO getPermissionDAO() {
+		if(datasource == null){
+			makeConnection();
+		}
+		return null;
 	}
 
 }
