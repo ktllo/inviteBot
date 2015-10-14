@@ -8,7 +8,7 @@ You should able to compile using maven, by `mvn compile package`
 #Bot command
 To send command to the bot either
 * Send PM to the bot
-* Send in ANY channel the bot is in, with `escape`(Configureable, default is !) before the command
+* Send in ANY channel the bot is in, with `escape`(Configurable, default is !) before the command
 * Send in ANY channel the bot is in, begin with bot's nickname
 
 ##Command list
