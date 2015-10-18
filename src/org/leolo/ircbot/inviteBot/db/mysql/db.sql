@@ -37,7 +37,7 @@ CREATE INDEX member_hostmask_hostmask ON member_hostmask(hostmask(200));
 CREATE TABLE permission(
 	permission_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     permission_name VARCHAR(255) NOT NULL UNIQUE KEY,
-    permission_TYPE INT UNSIGNED
+    permission_type INT UNSIGNED
 );
 
 CREATE TABLE role_permission(

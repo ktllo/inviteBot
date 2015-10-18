@@ -66,7 +66,7 @@ public class DatabaseManager implements org.leolo.ircbot.inviteBot.DatabaseManag
 		if(datasource == null){
 			makeConnection();
 		}
-		return null;
+		return new org.leolo.ircbot.inviteBot.db.mysql.PermissionDAO(datasource);
 	}
 
 }
