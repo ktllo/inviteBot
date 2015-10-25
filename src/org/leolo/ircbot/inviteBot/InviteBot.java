@@ -170,7 +170,7 @@ public class InviteBot{
 			System.exit(1);
 		}
 		System.out.println(config.getDatabaseManager().getConfigDAO().get("SCHEMA_VERSION"));
-		System.exit(0);
+//		System.exit(0);
 		Inviter inviter = new Inviter(config);
 		Builder b = new Configuration.Builder()
 		.setName(config.getNick()) //Nick of the bot.

@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 
 import org.leolo.ircbot.inviteBot.Config.Channel;
 import org.leolo.ircbot.inviteBot.util.ColorName;
@@ -33,6 +32,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 		this.config = config;
 		this.inviter = inviter;
 		commandList =  new HashMap<>();
+		this.registerCommand("echo", new EchoCommand());
 	}
 	
 	/**
@@ -56,7 +56,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 		String msg = event.getMessage();
 		String botnickname = event.getBot().getNick();
 		String escapeSeq = config.getEscape();
-
+		
 		if(msg.startsWith(escapeSeq))
 			cmd = msg.substring(escapeSeq.length());
 		else if(msg.toLowerCase().startsWith(botnickname.toLowerCase())){
@@ -86,10 +86,27 @@ public class Console extends ListenerAdapter<PircBotX> {
 
 	private void processMessage(String message,User user,PircBotX bot,String source, boolean pm){
 		CommandContext ctx = new CommandContext(user, bot, source, pm, message);
+		logger.info("{}!{}@{} send command {}",user.getNick(),user.getLogin(),user.getHostmask(),message);
 		String [] input = message.split(" ");
 		Command cmd = commandList.get(input[0].toLowerCase());
 		if(cmd!=null){
 			cmd.run(ctx);
+			BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(ctx.getBuffer().toByteArray())));
+			while(true){
+				String line = null;
+				try {
+					line = br.readLine();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				if(line == null){
+					break;
+				}
+				if(cmd.includeNick()){
+					line = user.getNick() + ": " + line.trim();
+				}
+				bot.sendIRC().message(source, line);
+			}
 		}
 	}
 	
@@ -128,7 +145,7 @@ class EchoCommand implements Command{
 
 	@Override
 	public void run(CommandContext ctx) {
-		ctx.getBot().sendIRC().message(ctx.getSource(), ctx.getMessage().substring(4));
+		ctx.getOut().println(ctx.getMessage().substring(4).trim());
 	}
 	
 }
