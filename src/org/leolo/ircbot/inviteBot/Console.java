@@ -33,6 +33,9 @@ public class Console extends ListenerAdapter<PircBotX> {
 		this.inviter = inviter;
 		commandList =  new HashMap<>();
 		this.registerCommand("echo", new EchoCommand());
+		this.registerCommand("ping", new PingCommand());
+		this.registerCommand("pong", new PingCommand());
+		
 	}
 	
 	/**
@@ -135,7 +138,7 @@ class EchoCommand implements Command{
 
 	@Override
 	public boolean includeNick() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -150,3 +153,36 @@ class EchoCommand implements Command{
 	
 }
 
+class PingCommand implements Command{
+
+	@Override
+	public boolean requiresGlobalAdmin() {
+		return false;
+	}
+
+	@Override
+	public boolean isPmOnly() {
+		return false;
+	}
+
+	@Override
+	public String getName() {
+		return "ping";
+	}
+
+	@Override
+	public boolean includeNick() {
+		return true;
+	}
+
+	@Override
+	public void printHelp(PrintStream out) {
+		//Echo doesn't have helps
+	}
+
+	@Override
+	public void run(CommandContext ctx) {
+		ctx.getOut().println("pong");
+	}
+	
+}
