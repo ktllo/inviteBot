@@ -168,6 +168,9 @@ class Config {
 	@Property( description = "Whether to use secure TLS/SSL connection.", defaultValue = "false" )
 	private boolean ssl;
 
+	@Property( description = "Server Password. you probably won't need this unless you're connecting to a ZNC." )
+	private String servpass;
+
 	@Property( description = "Password which bot will use to authenticate itself on IRC network." )
 	private String password;
 
@@ -251,6 +254,10 @@ class Config {
 
 	public String getNick() {
 		return nick;
+	}
+
+	public String getServerPassword() {
+		return servpass;
 	}
 
 	public String getPassword() {
