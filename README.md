@@ -1,30 +1,30 @@
 # Introduction
-This is a simple IRC bot to ask a simple math question before invite user to
+This is a simple IRC bot to ask a simple math question before inviting the user to
 another channel.
 
 #Compile
-You should able to compile using maven, by `mvn compile package`
+You should be able to compile using maven, by `mvn compile package`
 
 #Bot command
-To send command to the bot either
-* Send PM to the bot
-* Send in ANY channel the bot is in, with `escape`(Configureable, default is !) before the command
-* Send in ANY channel the bot is in, begin with bot's nickname
+To send a command to the bot either
+* Send a PM to the bot
+* Send it in ANY channel the bot is in, with `escape`(Configurable, default is !) before the command
+* Send it in ANY channel the bot is in, prefixed with bot's nickname
 
 ##Command list
-* User command
-    * `ping` to see is bot alive
+* User commands
+    * `ping` to see if the bot is alive
     * `resend` to resend the question
     * `version` returns the bot version
     * `info` returns basic bot information
-* Admin command
-    * `invite <user>[ ...]` To invite listed user listed without answering question
+* Admin commands
+    * `invite <user>[ ...]` To invite the given user(s) without answering question
     * `nick <nick>` To change the bot's nick to the given nickname(For GLOBAL admin only)
     * `backup` To backup the configuration file(For GLOBAL admin only)
 
 #Admins
-Global admins are who are IRCOp, `admin` set in the settings.properties.
-Local admins are those set in `<key>.admin` set in settings.properties.
+Global admins are those set in `admin` in settings.properties.
+Local admins are those set in `<key>.admin` in settings.properties.
 
 #Contact us
 You can find us on ##invitebot on freenode
