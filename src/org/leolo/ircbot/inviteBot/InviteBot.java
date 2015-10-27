@@ -59,7 +59,7 @@ public class InviteBot{
 			.option("--version",  "Prints version.")
 
 			.header("GLOBAL SETTINGS")
-			.pg("  Settings are inn the form:")
+			.pg("  Settings are in the form:")
 
 			.pg("    field=value")
 
