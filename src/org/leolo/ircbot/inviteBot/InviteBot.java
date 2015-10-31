@@ -59,7 +59,7 @@ public class InviteBot{
 			.option("--version",  "Prints version.")
 
 			.header("GLOBAL SETTINGS")
-			.pg("  Settings are inn the form:")
+			.pg("  Settings are in the form:")
 
 			.pg("    field=value")
 
@@ -176,6 +176,7 @@ public class InviteBot{
 		.setLogin(config.getIdent()) //Login part of hostmask, eg name:login@host
 		.setAutoNickChange(true) //Automatically change nick when the current one is in use
 		.setServer(config.getServer(), config.getPort())
+		.setServerPassword(config.getServerPassword())
 		.addListener(inviter)
 		.setAutoReconnect(true)
 		.addListener(new Console(config,inviter));
