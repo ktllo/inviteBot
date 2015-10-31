@@ -177,6 +177,11 @@ class Config {
 	@Property( description = "Whether to gzip the backuped config", defaultValue = "false")
 	private boolean compressBackup;
 	
+	@Property( description = "Use SASL", defaultValue = "false")
+	private boolean sasl;
+	
+	
+	
 	@Property( description = "Password which bot will use to authenticate itself on IRC network." )
 	private String password;
 
@@ -476,5 +481,13 @@ class Config {
 		builder.append(prop);
 		builder.append("]");
 		return builder.toString();
+	}
+
+	public boolean isSasl() {
+		return sasl;
+	}
+
+	public void setSasl(boolean sasl) {
+		this.sasl = sasl;
 	}
 }
