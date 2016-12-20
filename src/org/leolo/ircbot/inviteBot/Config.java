@@ -21,6 +21,7 @@ import org.leolo.ircbot.inviteBot.util.Property;
 import org.leolo.ircbot.inviteBot.util.PropertyMapperException;
 import org.leolo.ircbot.inviteBot.util.Glob;
 import org.leolo.ircbot.inviteBot.util.UserUtil;
+import org.leolo.ircbot.inviteBot.util.CaseMapping;
 import org.pircbotx.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,8 +74,10 @@ class Config {
 		}
 
 		public boolean isAdmin(User user){
+			String hostmask = CaseMapping.toLowerCase(UserUtil.getUserHostmask(user));
 			for(String admin:admins){
-				if(Glob.match(admin, UserUtil.getUserHostmask(user)))
+				admin = CaseMapping.toLowerCase(admin);
+				if(Glob.match(admin, hostmask))
 					return true;
 				
 			}
@@ -86,8 +89,9 @@ class Config {
 		}
 		
 		public boolean isExempted(User user){
-			String hostmask = UserUtil.getUserHostmask(user);
+			String hostmask = CaseMapping.toLowerCase(UserUtil.getUserHostmask(user));
 			for(String mask:exemptMask){
+				mask = CaseMapping.toLowerCase(mask);
 				if(Glob.match(mask, hostmask))
 					return true;
 			}
@@ -312,8 +316,10 @@ class Config {
 	public boolean isGlobalAdmin(User user){
 		if(user.isIrcop())
 			return true;
+		String hostmask = CaseMapping.toLowerCase(UserUtil.getUserHostmask(user));
 		for(String admin:admins){
-			if(Glob.match(admin, UserUtil.getUserHostmask(user)))
+			admin = CaseMapping.toLowerCase(admin);
+			if(Glob.match(admin, hostmask))
 				return true;
 			
 		}
