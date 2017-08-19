@@ -149,7 +149,7 @@ public class Console extends ListenerAdapter<PircBotX> {
 				StringBuilder sb = new StringBuilder();
 				sb.append(Color.color(ColorName.RED));
 				sb.append("Global admin only ").append(Color.defaultColor());
-				sb.append("Change the bot's nickname to the nockname given\n");
+				sb.append("Change the bot's nickname to the nickname given\n");
 				return sb.toString();
 			}
 		}else if(message.startsWith("nick")){

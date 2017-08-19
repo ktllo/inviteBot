@@ -169,6 +169,8 @@ public class InviteBot{
 		if(config.isSSL()){
 			b = b.setSocketFactory(new UtilSSLSocketFactory().disableDiffieHellman().trustAllCertificates());
 			b = b.setCapEnabled(true).addCapHandler(new SASLCapHandler(config.getUsername(), config.getPassword()));
+		}else{
+			b = b.setServerPassword(config.getPassword());
 		}
 		b = b.addCapHandler(new EnableCapHandler("extended-join",false));
 		PircBotX myBot = new PircBotX(b.buildConfiguration());
